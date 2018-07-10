@@ -102,3 +102,16 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+*~
+*dummy*
+*png
+logs*
+*save*
+*pickle*
+*_model
+*.sh
+dataset*
+*.notes
+*NOTES
+OLD*
+*test*
