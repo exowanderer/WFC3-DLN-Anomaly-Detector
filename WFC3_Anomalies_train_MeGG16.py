@@ -44,6 +44,18 @@ ap.add_argument("-ni", "--niters"    , type=int  , required=False, help="number 
 ap.add_argument("-lr", "--l_rate"    , type=float, required=False, help="initial learning rate"                            , default=1e-3                                              )
 ap.add_argument("-bs", "--batch_size", type=float, required=False, help="batch_size per iteration"                         , default=32                                                )
 
+
+ap.add_argument('-a', '--activation', type=str, required=False, default='elu', 
+ap.add_argument(n_layers=5, 
+ap.add_argument(depth0=32, 
+ap.add_argument(kernel_size=3, 
+ap.add_argument(dropout_rate=[0.25,0.5], 
+ap.add_argument(pool_size=2,
+ap.add_argument(stride_size=2, 
+ap.add_argument(use_bias=False, 
+ap.add_argument(zero_pad=False, 
+ap.add_argument(zero_pad_size=1)
+                
 args = vars(ap.parse_args())
 
 # args = {}
@@ -128,9 +140,9 @@ tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_f
 callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 
 print("[INFO] compiling model...")
-model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
-    depth=IMAGE_DIMS[2], classes=len(lb.classes_))
-    
+# model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
+#     depth=IMAGE_DIMS[2], classes=len(lb.classes_))
+
 model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
                         depth=IMAGE_DIMS[2], classes=len(lb.classes_), 
                         activation='relu', n_layers=1, depth0=32, 
@@ -139,6 +151,7 @@ model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
                         zero_pad_size=1)
 
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
+
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 
 # train the network
