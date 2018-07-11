@@ -123,7 +123,7 @@ tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_f
                      write_grads=False, write_images=False, embeddings_freq=0,
                      embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
 
-testcall = TestCallback((X_test, Y_test))
+# testcall = TestCallback((X_test, Y_test))
 
 callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 
