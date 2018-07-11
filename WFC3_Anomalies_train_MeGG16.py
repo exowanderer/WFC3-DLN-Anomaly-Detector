@@ -157,8 +157,6 @@ tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_f
 callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 
 print("[INFO] compiling model...")
-# model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
-#     depth=IMAGE_DIMS[2], classes=len(lb.classes_))
 N_CLASSES = len(lb.classes_)
 
 model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
