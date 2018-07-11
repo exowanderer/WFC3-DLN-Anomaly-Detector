@@ -1,4 +1,5 @@
 import argparse
+from multiprocessing import cpu_count
 
 def in_range(value, min=0, max=1, dtype=float):
     ivalue = dtype(value)
@@ -61,7 +62,6 @@ USE_BIAS      = args['use_bias']
 ZERO_PAD      = args['zero_pad']
 ZERO_PAD_SIZE = args['zero_pad_size']
 
-
 from matplotlib import use
 use('Agg')
 
@@ -91,7 +91,6 @@ from tqdm import tqdm
 
 
 from tensorflow import ConfigProto, Session
-from multiprocessing import cpu_count
 
 # initialize the data and labels
 data    = []
