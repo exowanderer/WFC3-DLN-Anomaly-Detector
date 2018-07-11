@@ -4,15 +4,14 @@ from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
 from keras.optimizers import SGD
 import cv2, numpy as np
 
-# from keras.layers.normalization import BatchNormalization
+from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
 class vgg_net_16:
     @staticmethod
     def build(width, height, depth, classes, n_layers=5, depth0=64):
-        if n_layers > 5:
-            print('')
-            n_layers = 5
+        if n_layers > 5: n_layers = 5
+        
         # initialize the model along with the input shape to be
         # "channels last" and the channels dimension itself
         model = Sequential()
