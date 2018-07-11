@@ -1,9 +1,70 @@
-''' THIS IS SUPPOSED TO GO INTO A NEW FILE AND *CALL* THE ABOVE CLASS '''
+import argparse
+
+def in_range(value, min=0, max=1, dtype=float):
+    ivalue = dtype(value)
+    if min <= ivalue <= max:
+        return ivalue
+    
+    raise argparse.ArgumentTypeError("{} is invalid; the `dropout_rate` must be either from [0,1] (inclusive).".format(value))
+    
+def greater_than(value, min=0):
+    ivalue = int(value)
+    if min <= ivalue:
+         return ivalue
+    
+    raise argparse.ArgumentTypeError("{} is invalid; `n_layers` must be either 1, 2, 3, 4, or 5.".format(value))
+
+# construct the argument parse and parse the arguments
+ap = argparse.ArgumentParser()
+
+ap.add_argument("-d", "--dataset", type=str, required=False, help="path to input dataset (i.e., directory of images)", default='dataset')
+ap.add_argument("-m", "--model", type=str, required=False, help="path to output model", default='rename_me_wfc3_MeGGNet_model')
+ap.add_argument("-l", "--labelbin", type=str, required=False, help="path to output label binarizer", default='rename_me_lb')
+ap.add_argument("-p", "--plot", type=str, required=False, help="path to output accuracy/loss plot", default="rename_me_wfc3_MeGGNet_model_loss_acc.png")
+ap.add_argument("-nc", "--ncores", type=int, required=False, help="number of cpu cores to use; default == ALL", default=cpu_count())
+ap.add_argument("-ni", "--niters", type=int, required=False, help="number of iterations to use; default == 100", default=100)
+ap.add_argument("-lr", "--l_rate", type=float, required=False, help="initial learning rate", default=1e-3)
+ap.add_argument("-bs", "--batch_size", type=int, required=False, help="batch_size per iteration", default=32)
+ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_size per iteration", default=100)
+
+ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
+ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=5, help='Select the number of convolutional layers from 1 to 5.')
+ap.add_argument('-d0', '--depth0', type=partial(greater_than, min=1), required=False, default=32, help='The depth of the first Conv2D layer; subsequent layers are double in depth, and half in width.')
+ap.add_argument('-ks', '--kernel_size', type=partial(greater_than, min=3), required=False, default=3, help='Select the size of the Conv2D kernel (symmetric)'.)
+ap.add_argument('-dr0', '--dropout_rate0', type=in_range, required=False, default=0.25, help='Select the Conv2D layer dropout rate'.)
+ap.add_argument('-dr1', '--dropout_rate1', type=in_range, required=False, default=0.50, help='Select the Top, Dense layer dropout rate.')
+ap.add_argument('-ps', '--pool_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D pool size (symmetric).')
+ap.add_argument('-ss', '--stride_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D stride size (symmetric).')
+ap.add_argument('-b', '--use_bias', type=bool, required=False, default=False, help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
+ap.add_argument('-zp', '--zero_pad', type=bool, required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
+ap.add_argument('-zps', '--zero_pad_size', type=partial(greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
+
+args = vars(ap.parse_args())
+
+# initialize the number of epochs to train for, initial learning rate,
+# batch size, and image dimensions
+
+EPOCHS        = args["niters"]#100
+INIT_LR       = args["l_rate"]#1e-3
+BS            = args["batch_size"] #32
+IM_SIZE       = args['image_size']
+IMAGE_DIMS    = (IM_SIZE,IM_SIZE,1)
+
+ACTIVATION    = args['activation']
+N_LAYERS      = args['n_layers']
+DEPTH0        = args['depth0']
+KERNEL_SIZE   = args['kernel_size']
+DROPOUT_SIZE  = args['dropout_rate']
+POOL_SIZE     = args['pool_size']
+STRIDE_SIZE   = args['stride_size']
+USE_BIAS      = args['use_bias']
+ZERO_PAD      = args['zero_pad']
+ZERO_PAD_SIZE = args['zero_pad_size']
+
 
 from matplotlib import use
 use('Agg')
 
-import argparse
 import cv2
 import keras
 import matplotlib.pyplot as plt
@@ -31,79 +92,6 @@ from tqdm import tqdm
 
 from tensorflow import ConfigProto, Session
 from multiprocessing import cpu_count
-
-
-def in_range(value, min=0, max=1, dtype=float):
-    ivalue = dtype(value)
-    if min <= ivalue <= max:
-        return ivalue
-    
-    raise argparse.ArgumentTypeError("{} is invalid; the `dropout_rate` must be either from [0,1] (inclusive).".format(value))
-    
-def greater_than(value, min=0):
-    ivalue = int(value)
-    if min <= ivalue:
-         return ivalue
-    
-    raise argparse.ArgumentTypeError("{} is invalid; `n_layers` must be either 1, 2, 3, 4, or 5.".format(value))
-
-# construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-
-ap.add_argument("-d" , "--dataset"   , type=str  , required=False, help="path to input dataset (i.e., directory of images)", default='dataset'                                         )
-ap.add_argument("-m" , "--model"     , type=str  , required=False, help="path to output model"                             , default='rename_me_wfc3_MeGGNet_model'                      )
-ap.add_argument("-l" , "--labelbin"  , type=str  , required=False, help="path to output label binarizer"                   , default='rename_me_lb'                                    )
-ap.add_argument("-p" , "--plot"      , type=str  , required=False, help="path to output accuracy/loss plot"                , default="rename_me_wfc3_MeGGNet_model_loss_acc.png")
-ap.add_argument("-nc", "--ncores"    , type=int  , required=False, help="number of cpu cores to use; default == ALL"       , default=cpu_count()                                       )
-ap.add_argument("-ni", "--niters"    , type=int  , required=False, help="number of iterations to use; default == 100"      , default=100                                               )
-ap.add_argument("-lr", "--l_rate"    , type=float, required=False, help="initial learning rate"                            , default=1e-3                                              )
-ap.add_argument("-bs", "--batch_size", type=int  , required=False, help="batch_size per iteration"                         , default=32                                                )
-ap.add_argument("-is", "--image_size", type=int  , required=False, help="batch_size per iteration"                         , default=100                                               )
-
-
-ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
-ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=5, help='Select the number of convolutional layers from 1 to 5.')
-ap.add_argument('-d0', '--depth0', type=partial(greater_than, min=1), required=False, default=32, help='The depth of the first Conv2D layer; subsequent layers are double in depth, and half in width.')
-ap.add_argument('-ks', '--kernel_size', type=partial(greater_than, min=3), required=False, default=3, help='Select the size of the Conv2D kernel (symmetric)'.)
-ap.add_argument('-dr0', '--dropout_rate0', type=in_range, required=False, default=0.25, help='Select the Conv2D layer dropout rate'.)
-ap.add_argument('-dr1', '--dropout_rate1', type=in_range, required=False, default=0.50, help='Select the Top, Dense layer dropout rate.')
-ap.add_argument('-ps', '--pool_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D pool size (symmetric).')
-ap.add_argument('-ss', '--stride_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D stride size (symmetric).')
-ap.add_argument('-b', '--use_bias', type=bool, required=False, default=False, help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
-ap.add_argument('-zp', '--zero_pad', type=bool, required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
-ap.add_argument('-zps', '--zero_pad_size', type=partial(greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
-
-args = vars(ap.parse_args())
-
-# args = {}
-# args["dataset"]       = 'dataset'
-# args["model"]         = 'jdf_edits_2nd_test_wfc3_MeGGNet_model'
-# args["labelbin"]      = 'jdf_edits_2nd_test_lb'
-# args["plot"]          = 'jdf_edits_2nd_test_wfc3_MeGGNet_model_loss_acc.png'
-# args["ncores"]        = cpu_count()-1
-# args["niters"]        = 100
-# args["learning_rate"] = 1e-3
-# args["batch_size"]    = 32
-
-# initialize the number of epochs to train for, initial learning rate,
-# batch size, and image dimensions
-
-EPOCHS        = args["niters"]#100
-INIT_LR       = args["l_rate"]#1e-3
-BS            = args["batch_size"] #32
-IM_SIZE       = args['image_size']
-IMAGE_DIMS    = (IM_SIZE,IM_SIZE,1)
-
-ACTIVATION    = args['activation']
-N_LAYERS      = args['n_layers']
-DEPTH0        = args['depth0']
-KERNEL_SIZE   = args['kernel_size']
-DROPOUT_SIZE  = args['dropout_rate']
-POOL_SIZE     = args['pool_size']
-STRIDE_SIZE   = args['stride_size']
-USE_BIAS      = args['use_bias']
-ZERO_PAD      = args['zero_pad']
-ZERO_PAD_SIZE = args['zero_pad_size']
 
 # initialize the data and labels
 data    = []
