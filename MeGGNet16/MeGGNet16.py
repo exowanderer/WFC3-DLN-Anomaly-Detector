@@ -57,7 +57,7 @@ class MeGGNet16:
             model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
             model.add(BatchNormalization(axis=chanDim))
             model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
-            model.add(DropOout(dropout_rate[0]))
+            model.add(Dropout(dropout_rate[0]))
         
         if n_layers > 1:
             depth0 = 2*depth0
