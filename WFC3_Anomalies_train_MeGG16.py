@@ -57,7 +57,8 @@ ap.add_argument("-p" , "--plot"      , type=str  , required=False, help="path to
 ap.add_argument("-nc", "--ncores"    , type=int  , required=False, help="number of cpu cores to use; default == ALL"       , default=cpu_count()                                       )
 ap.add_argument("-ni", "--niters"    , type=int  , required=False, help="number of iterations to use; default == 100"      , default=100                                               )
 ap.add_argument("-lr", "--l_rate"    , type=float, required=False, help="initial learning rate"                            , default=1e-3                                              )
-ap.add_argument("-bs", "--batch_size", type=float, required=False, help="batch_size per iteration"                         , default=32                                                )
+ap.add_argument("-bs", "--batch_size", type=int  , required=False, help="batch_size per iteration"                         , default=32                                                )
+ap.add_argument("-is", "--image_size", type=int  , required=False, help="batch_size per iteration"                         , default=100                                               )
 
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
@@ -71,7 +72,7 @@ ap.add_argument('-ss', '--stride_size', type=partial(greater_than, min=2), requi
 ap.add_argument('-b', '--use_bias', type=bool, required=False, default=False, help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
 ap.add_argument('-zp', '--zero_pad', type=bool, required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
 ap.add_argument('-zps', '--zero_pad_size', type=partial(greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
-                
+
 args = vars(ap.parse_args())
 
 # args = {}
@@ -87,10 +88,22 @@ args = vars(ap.parse_args())
 # initialize the number of epochs to train for, initial learning rate,
 # batch size, and image dimensions
 
-EPOCHS      = args["niters"]#100
-INIT_LR     = args["l_rate"]#1e-3
-BS          = args["batch_size"] #32
-IMAGE_DIMS  = (100,100,1)
+EPOCHS        = args["niters"]#100
+INIT_LR       = args["l_rate"]#1e-3
+BS            = args["batch_size"] #32
+IM_SIZE       = args['image_size']
+IMAGE_DIMS    = (IM_SIZE,IM_SIZE,1)
+
+ACTIVATION    = args['activation']
+N_LAYERS      = args['n_layers']
+DEPTH0        = args['depth0']
+KERNEL_SIZE   = args['kernel_size']
+DROPOUT_SIZE  = args['dropout_rate']
+POOL_SIZE     = args['pool_size']
+STRIDE_SIZE   = args['stride_size']
+USE_BIAS      = args['use_bias']
+ZERO_PAD      = args['zero_pad']
+ZERO_PAD_SIZE = args['zero_pad_size']
 
 # initialize the data and labels
 data    = []
@@ -158,13 +171,15 @@ callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 print("[INFO] compiling model...")
 # model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
 #     depth=IMAGE_DIMS[2], classes=len(lb.classes_))
+N_CLASSES = len(lb.classes_)
 
 model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
-                        depth=IMAGE_DIMS[2], classes=len(lb.classes_), 
-                        activation='relu', n_layers=1, depth0=32, 
-                        kernel_size=3, dropout_rate=[0.25,0.5], pool_size=2,
-                        stride_size=2, use_bias=False, zero_pad=False, 
-                        zero_pad_size=1)
+                        depth=IMAGE_DIMS[2], classes=N_CLASSES, 
+                        activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
+                        kernel_size=KERNEL_SIZE, dropout_rate=[DROPOUT_RATE0,DROPOUT_RATE1], 
+                        pool_size=POOL_SIZE, stride_size=STRIDE_SIZE, 
+                        use_bias=USE_BIAS, zero_pad=ZERO_PAD, 
+                        zero_pad_size=ZERO_PAD_SIZE)
 
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
