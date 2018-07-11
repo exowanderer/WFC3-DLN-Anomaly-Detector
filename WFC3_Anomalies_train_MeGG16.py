@@ -13,6 +13,7 @@ import os
 import random
  
 # import the necessary packages
+from functools import partial
 from imutils import paths
 
 from keras import backend as K
@@ -31,7 +32,21 @@ from tqdm import tqdm
 from tensorflow import ConfigProto, Session
 from multiprocessing import cpu_count
 
-# # pip install --upgrade imutils
+
+def in_range(value, min=0, max=1, dtype=float):
+    ivalue = dtype(value)
+    if min <= ivalue <= max:
+        return ivalue
+    
+    raise argparse.ArgumentTypeError("{} is invalid; the `dropout_rate` must be either from [0,1] (inclusive).".format(value))
+    
+def greater_than(value, min=0):
+    ivalue = int(value)
+    if min <= ivalue:
+         return ivalue
+    
+    raise argparse.ArgumentTypeError("{} is invalid; `n_layers` must be either 1, 2, 3, 4, or 5.".format(value))
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 
@@ -45,16 +60,17 @@ ap.add_argument("-lr", "--l_rate"    , type=float, required=False, help="initial
 ap.add_argument("-bs", "--batch_size", type=float, required=False, help="batch_size per iteration"                         , default=32                                                )
 
 
-ap.add_argument('-a', '--activation', type=str, required=False, default='elu', 
-ap.add_argument(n_layers=5, 
-ap.add_argument(depth0=32, 
-ap.add_argument(kernel_size=3, 
-ap.add_argument(dropout_rate=[0.25,0.5], 
-ap.add_argument(pool_size=2,
-ap.add_argument(stride_size=2, 
-ap.add_argument(use_bias=False, 
-ap.add_argument(zero_pad=False, 
-ap.add_argument(zero_pad_size=1)
+ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
+ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=5, help='Select the number of convolutional layers from 1 to 5.')
+ap.add_argument('-d0', '--depth0', type=partial(greater_than, min=1), required=False, default=32, help='The depth of the first Conv2D layer; subsequent layers are double in depth, and half in width.')
+ap.add_argument('-ks', '--kernel_size', type=partial(greater_than, min=3), required=False, default=3, help='Select the size of the Conv2D kernel (symmetric)'.)
+ap.add_argument('-dr0', '--dropout_rate0', type=in_range, required=False, default=0.25, help='Select the Conv2D layer dropout rate'.)
+ap.add_argument('-dr1', '--dropout_rate1', type=in_range, required=False, default=0.50, help='Select the Top, Dense layer dropout rate.')
+ap.add_argument('-ps', '--pool_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D pool size (symmetric).')
+ap.add_argument('-ss', '--stride_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D stride size (symmetric).')
+ap.add_argument('-b', '--use_bias', type=bool, required=False, default=False, help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
+ap.add_argument('-zp', '--zero_pad', type=bool, required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
+ap.add_argument('-zps', '--zero_pad_size', type=partial(greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
                 
 args = vars(ap.parse_args())
 
