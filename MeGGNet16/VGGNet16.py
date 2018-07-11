@@ -9,9 +9,7 @@ from keras import backend as K
 
 class vgg_net_16:
     @staticmethod
-    def build(width, height, depth, classes, n_layers=5, depth0=64):
-        if n_layers > 5: n_layers = 5
-        
+    def build(width, height, depth, classes):
         # initialize the model along with the input shape to be
         # "channels last" and the channels dimension itself
         model = Sequential()
@@ -35,74 +33,65 @@ class vgg_net_16:
         '''
         model = Sequential()
         
-        if n_layers > 0:
-            model.add(ZeroPadding2D((1,1),input_shape=inputShape))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((2,2), strides=(2,2)))
-            model.add(Dropout(0.25))
+        model.add(ZeroPadding2D((1,1),input_shape=inputShape))
+        model.add(Conv2D(64, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(64, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((2,2), strides=(2,2)))
+        model.add(Dropout(0.25))
         
-        if n_layers > 1:
-            depth0 = 2*depth0
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((2,2), strides=(2,2)))
-            model.add(Dropout(0.25))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(128, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(128, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((2,2), strides=(2,2)))
+        model.add(Dropout(0.25))
         
-        if n_layers > 2:
-            depth0 = 2*depth0
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((2,2), strides=(2,2)))
-            model.add(Dropout(0.25))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(256, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(256, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(256, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((2,2), strides=(2,2)))
+        model.add(Dropout(0.25))
         
-        if n_layers > 3:
-            depth0 = 2*depth0
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((2,2), strides=(2,2)))
-            model.add(Dropout(0.25))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(512, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(512, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(512, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((2,2), strides=(2,2)))
+        model.add(Dropout(0.25))
         
-        if n_layers > 4:
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            # model.add(ZeroPadding2D((1,1)))
-            model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((2,2), strides=(2,2)))
-            model.add(Dropout(0.25))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(512, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(512, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        # model.add(ZeroPadding2D((1,1)))
+        model.add(Conv2D(512, (3, 3), activation='relu')#, padding="same", use_bias=False))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((2,2), strides=(2,2)))
+        model.add(Dropout(0.25))
         
-        depth0 = 8*depth0
         model.add(Flatten())
-        model.add(Dense(depth0, activation='elu'))
+        model.add(Dense(4096, activation='relu'))
         model.add(BatchNormalization(axis=chanDim))
         model.add(Dropout(0.5))
-        model.add(Dense(depth0, activation='elu'))
+        model.add(Dense(4096, activation='relu'))
         model.add(BatchNormalization(axis=chanDim))
         model.add(Dropout(0.5))
         model.add(Dense(classes, activation='softmax'))
