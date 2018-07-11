@@ -21,7 +21,7 @@ from keras.preprocessing.image import img_to_array
 from sklearn.externals import joblib
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
-from VGGNet16.MeGGNet16 import MeGGNet16
+from MeGGNet16.MeGGNet16 import MeGGNet16
 from time import time
 from tqdm import tqdm
 
