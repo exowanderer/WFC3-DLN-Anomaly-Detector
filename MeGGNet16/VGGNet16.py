@@ -43,7 +43,7 @@ class vgg_net_16:
             model.add(Conv2D(depth0, (3, 3), activation='elu', padding="same", use_bias=False))
             model.add(BatchNormalization(axis=chanDim))
             model.add(MaxPooling2D((2,2), strides=(2,2)))
-            model.add(DropOout(0.25))
+            model.add(Dropout(0.25))
         
         if n_layers > 1:
             depth0 = 2*depth0
