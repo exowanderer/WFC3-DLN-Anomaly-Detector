@@ -34,9 +34,9 @@ from multiprocessing import cpu_count
 ap = argparse.ArgumentParser()
 
 ap.add_argument("-d" , "--dataset"   , type=str  , required=False, help="path to input dataset (i.e., directory of images)", default='dataset'                                         )
-ap.add_argument("-m" , "--model"     , type=str  , required=False, help="path to output model"                             , default='rename_me_wfc3_smVGG_model'                      )
+ap.add_argument("-m" , "--model"     , type=str  , required=False, help="path to output model"                             , default='rename_me_wfc3_MeGGNet_model'                      )
 ap.add_argument("-l" , "--labelbin"  , type=str  , required=False, help="path to output label binarizer"                   , default='rename_me_lb'                                    )
-ap.add_argument("-p" , "--plot"      , type=str  , required=False, help="path to output accuracy/loss plot"                , default="rename_me_wfc3_smVGG_model_loss_acc.png")
+ap.add_argument("-p" , "--plot"      , type=str  , required=False, help="path to output accuracy/loss plot"                , default="rename_me_wfc3_MeGGNet_model_loss_acc.png")
 ap.add_argument("-nc", "--ncores"    , type=int  , required=False, help="number of cpu cores to use; default == ALL"       , default=cpu_count()                                       )
 ap.add_argument("-ni", "--niters"    , type=int  , required=False, help="number of iterations to use; default == 100"      , default=100                                               )
 ap.add_argument("-lr", "--l_rate"    , type=float, required=False, help="initial learning rate"                            , default=1e-3                                              )
@@ -46,9 +46,9 @@ args = vars(ap.parse_args())
 
 # args = {}
 # args["dataset"]       = 'dataset'
-# args["model"]         = 'jdf_edits_2nd_test_wfc3_smVGG_model'
+# args["model"]         = 'jdf_edits_2nd_test_wfc3_MeGGNet_model'
 # args["labelbin"]      = 'jdf_edits_2nd_test_lb'
-# args["plot"]          = 'jdf_edits_2nd_test_wfc3_smVGG_model_loss_acc.png'
+# args["plot"]          = 'jdf_edits_2nd_test_wfc3_MeGGNet_model_loss_acc.png'
 # args["ncores"]        = cpu_count()-1
 # args["niters"]        = 100
 # args["learning_rate"] = 1e-3
