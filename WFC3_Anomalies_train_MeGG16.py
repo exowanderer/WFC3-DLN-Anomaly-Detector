@@ -114,8 +114,10 @@ aug = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
 # with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"])) as sess:
 # K.set_session(sess)
 
-early_stopping = keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, mode='max',
-                                                verbose=1, baseline=args["min_val_acc"])
+
+# args["min_val_acc"] = 0.65
+# early_stopping = keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, mode='max',
+#                                                 verbose=1, baseline=args["min_val_acc"])
 
 tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BS, write_graph=True,
                      write_grads=False, write_images=False, embeddings_freq=0,
