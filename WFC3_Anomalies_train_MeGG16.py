@@ -5,6 +5,7 @@ use('Agg')
 
 import argparse
 import cv2
+import keras
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -13,6 +14,7 @@ import random
  
 # import the necessary packages
 from imutils import paths
+
 from keras import backend as K
 from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
