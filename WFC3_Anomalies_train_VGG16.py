@@ -135,12 +135,12 @@ print("[INFO] compiling model...")
 N_CLASSES = len(lb.classes_)
 
 model = VGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
-                        depth=IMAGE_DIMS[2], classes=N_CLASSES, 
-                        activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
-                        kernel_size=KERNEL_SIZE, dropout_rate=[DROPOUT_RATE0,DROPOUT_RATE1], 
-                        pool_size=POOL_SIZE, stride_size=STRIDE_SIZE, 
-                        use_bias=USE_BIAS, zero_pad=ZERO_PAD, 
-                        zero_pad_size=ZERO_PAD_SIZE)
+                        depth=IMAGE_DIMS[2], classes=N_CLASSES)
+                        # activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0,
+                        # kernel_size=KERNEL_SIZE, dropout_rate=[DROPOUT_RATE0,DROPOUT_RATE1],
+                        # pool_size=POOL_SIZE, stride_size=STRIDE_SIZE,
+                        # use_bias=USE_BIAS, zero_pad=ZERO_PAD,
+                        # zero_pad_size=ZERO_PAD_SIZE)
 
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
