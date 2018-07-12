@@ -49,67 +49,67 @@ class MeGGNet16:
         '''
         model = Sequential()
         
-        if n_layers > 0:
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size),input_shape=inputShape))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
-            model.add(Dropout(dropout_rate[0]))
+        # if n_layers > 0:
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size),input_shape=inputShape))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
+        model.add(Dropout(dropout_rate[0]))
         
-        if n_layers > 1:
-            depth0 = 2*depth0
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
-            model.add(Dropout(dropout_rate[0]))
+        # if n_layers > 1:
+        depth0 = 2*depth0
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
+        model.add(Dropout(dropout_rate[0]))
         
-        if n_layers > 2:
-            depth0 = 2*depth0
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
-            model.add(Dropout(dropout_rate[0]))
+        # if n_layers > 2:
+        depth0 = 2*depth0
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
+        model.add(Dropout(dropout_rate[0]))
         
-        if n_layers > 3:
-            depth0 = 2*depth0
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
-            model.add(Dropout(dropout_rate[0]))
+        # if n_layers > 3:
+        depth0 = 2*depth0
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
+        model.add(Dropout(dropout_rate[0]))
         
-        if n_layers > 4:
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
-            model.add(Dropout(dropout_rate[0]))
+        # if n_layers > 4:
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
+        model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D((pool_size, pool_size), strides=(stride_size, stride_size)))
+        model.add(Dropout(dropout_rate[0]))
         
         depth0 = 8*depth0
         model.add(Flatten())
