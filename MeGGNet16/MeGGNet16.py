@@ -16,7 +16,6 @@ class MeGGNet16:
                 zero_pad_size=1):
         
         # VGG Default for depth0 is 64 (I'm making it smaller)
-        
         if isinstance(dropout_rate, float):
             dropout_rate = [dropout_rate, dropout_rate]
         
@@ -26,6 +25,7 @@ class MeGGNet16:
         if n_layers > 5:
             print('Max Number of Layers is 5; setting `n_layers=5`')
             n_layers = 5
+        
         # initialize the model along with the input shape to be
         # "channels last" and the channels dimension itself
         model = Sequential()

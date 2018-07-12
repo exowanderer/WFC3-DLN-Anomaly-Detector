@@ -90,7 +90,6 @@ from MeGGNet16.MeGGNet16 import MeGGNet16
 from time import time
 from tqdm import tqdm
 
-
 from tensorflow import ConfigProto, Session
 
 # initialize the data and labels
@@ -169,7 +168,11 @@ model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
 
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
+print('before compile1')
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
+print('aftercompile1')
+model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
+print('before compile2')
 
 # train the network
 print("[INFO] training network...")
