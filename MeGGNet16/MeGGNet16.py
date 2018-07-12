@@ -7,7 +7,7 @@ import cv2, numpy as np
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
-class VGGNet16:
+class MeGGNet16:
     @staticmethod
     def build(width, height, depth, classes):
         # initialize the model along with the input shape to be
