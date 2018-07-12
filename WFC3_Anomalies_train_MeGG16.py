@@ -135,6 +135,7 @@ callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 print("[INFO] compiling model...")
 N_CLASSES = len(lb.classes_)
 
+from keras.models import Sequential
 model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
                         depth=IMAGE_DIMS[2], classes=N_CLASSES)
                         # activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0,

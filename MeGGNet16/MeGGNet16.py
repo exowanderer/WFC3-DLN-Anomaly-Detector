@@ -28,7 +28,6 @@ class MeGGNet16:
         
         # initialize the model along with the input shape to be
         # "channels last" and the channels dimension itself
-        model = Sequential()
         inputShape = (height, width, depth)
         chanDim = -1
         
@@ -50,8 +49,12 @@ class MeGGNet16:
         model = Sequential()
         
         if n_layers > 0:
-            if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size),input_shape=inputShape))
-            model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+            if zero_pad: 
+                model.add(ZeroPadding2D((zero_pad_size, zero_pad_size),input_shape=inputShape))
+                model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
+            else:
+                model.add(Conv2D(depth0, (kernel_size, kernel_size), input_shape=inputShape, activation=activation, padding="same", use_bias=use_bias))
+            
             model.add(BatchNormalization(axis=chanDim))
             if zero_pad: model.add(ZeroPadding2D((zero_pad_size, zero_pad_size)))
             model.add(Conv2D(depth0, (kernel_size, kernel_size), activation=activation, padding="same", use_bias=use_bias))
