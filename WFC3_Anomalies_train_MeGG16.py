@@ -29,6 +29,18 @@ ap.add_argument("-lr", "--l_rate", type=float, required=False, help="initial lea
 ap.add_argument("-bs", "--batch_size", type=int, required=False, help="batch_size per iteration", default=32)
 ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_size per iteration", default=100)
 
+ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
+ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=5, help='Select the number of convolutional layers from 1 to 5.')
+ap.add_argument('-d0', '--depth0', type=partial(greater_than, min=1), required=False, default=32, help='The depth of the first Conv2D layer; subsequent layers are double in depth, and half in width.')
+ap.add_argument('-ks', '--kernel_size', type=partial(greater_than, min=3), required=False, default=3, help='Select the size of the Conv2D kernel (symmetric).')
+ap.add_argument('-dr0', '--dropout_rate0', type=in_range, required=False, default=0.25, help='Select the Conv2D layer dropout rate.')
+ap.add_argument('-dr1', '--dropout_rate1', type=in_range, required=False, default=0.50, help='Select the Top, Dense layer dropout rate.')
+ap.add_argument('-ps', '--pool_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D pool size (symmetric).')
+ap.add_argument('-ss', '--stride_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D stride size (symmetric).')
+ap.add_argument('-b', '--use_bias', type=bool, required=False, default=False, help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
+ap.add_argument('-zp', '--zero_pad', type=bool, required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
+ap.add_argument('-zps', '--zero_pad_size', type=partial(greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
+
 args = vars(ap.parse_args())
 
 # initialize the number of epochs to train for, initial learning rate,
@@ -39,6 +51,18 @@ INIT_LR       = args["l_rate"]#1e-3
 BS            = args["batch_size"] #32
 IM_SIZE       = args['image_size']
 IMAGE_DIMS    = (IM_SIZE,IM_SIZE,1)
+
+ACTIVATION    = args['activation']
+N_LAYERS      = args['n_layers']
+DEPTH0        = args['depth0']
+KERNEL_SIZE   = args['kernel_size']
+DROPOUT_RATE0 = args['dropout_rate0']
+DROPOUT_RATE1 = args['dropout_rate1']
+POOL_SIZE     = args['pool_size']
+STRIDE_SIZE   = args['stride_size']
+USE_BIAS      = args['use_bias']
+ZERO_PAD      = args['zero_pad']
+ZERO_PAD_SIZE = args['zero_pad_size']
 
 from matplotlib import use
 use('Agg')
@@ -62,7 +86,6 @@ from keras.preprocessing.image import img_to_array
 from sklearn.externals import joblib
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
-# from MeGGNet16.VGGNet16 import VGGNet16 as MeGGNet16
 from MeGGNet16.MeGGNet16 import MeGGNet16
 from time import time
 from tqdm import tqdm
@@ -135,22 +158,13 @@ callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 print("[INFO] compiling model...")
 N_CLASSES = len(lb.classes_)
 
-from keras.models import Sequential
 model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
-                        depth=IMAGE_DIMS[2], classes=N_CLASSES)
-                        # activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0,
-                        # kernel_size=KERNEL_SIZE, dropout_rate=[DROPOUT_RATE0,DROPOUT_RATE1],
-                        # pool_size=POOL_SIZE, stride_size=STRIDE_SIZE,
-                        # use_bias=USE_BIAS, zero_pad=ZERO_PAD,
-                        # zero_pad_size=ZERO_PAD_SIZE)
-# model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
-#                         depth=IMAGE_DIMS[2], classes=N_CLASSES,
-#                         activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0,
-#                         kernel_size=KERNEL_SIZE, dropout_rate=[DROPOUT_RATE0,DROPOUT_RATE1],
-#                         pool_size=POOL_SIZE, stride_size=STRIDE_SIZE,
-#                         use_bias=USE_BIAS, zero_pad=ZERO_PAD,
-#                         zero_pad_size=ZERO_PAD_SIZE)
-
+                        depth=IMAGE_DIMS[2], classes=N_CLASSES, 
+                        activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
+                        kernel_size=KERNEL_SIZE, dropout_rate=[DROPOUT_RATE0,DROPOUT_RATE1], 
+                        pool_size=POOL_SIZE, stride_size=STRIDE_SIZE, 
+                        use_bias=USE_BIAS, zero_pad=ZERO_PAD, 
+                        zero_pad_size=ZERO_PAD_SIZE)
 
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
