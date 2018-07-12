@@ -170,6 +170,8 @@ opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 
+print(model.summary())
+
 # train the network
 print("[INFO] training network...")
 start = time()
