@@ -86,7 +86,7 @@ from keras.preprocessing.image import img_to_array
 from sklearn.externals import joblib
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
-from MynCeptionNet16.MynCeptionNet16 import MynCeptionNet16
+from MyBox_O_DNNs.MynCeptionNet import MynCeptionNet
 from time import time
 from tqdm import tqdm
 
@@ -158,7 +158,7 @@ callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 print("[INFO] compiling model...")
 N_CLASSES = len(lb.classes_)
 
-model = MynCeptionNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
+model = MynCeptionNet.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
                         depth=IMAGE_DIMS[2], classes=N_CLASSES, 
                         activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
                         kernel_size=KERNEL_SIZE, dropout_rate=[DROPOUT_RATE0,DROPOUT_RATE1], 
