@@ -10,7 +10,7 @@ from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
 def inception_module(input_layer, activation='elu', n_towers = 3,
-                      depths=[64, 64,64,64], kernel_sizes = [3,5,1]):
+                      depths=[64,64,64,64], kernel_sizes = [3,5,1]):
     
     depthSpare = depths[0]
     ones_kernel = (1,1)
