@@ -69,7 +69,7 @@ class MeCeptionNet:
             
             model = BatchNormalization(axis=chanDim)(model)
             
-            if n_skip_junc_gap > 0 and k % n_skip_junc_gap == 0:
+            if n_skip_junc_gap > 0 and k +1 % n_skip_junc_gap == 0:
                 jump_layer = BatchNormalization(axis=chanDim)(input_layer)
                 model = Add()([model, jump_layer])
         
