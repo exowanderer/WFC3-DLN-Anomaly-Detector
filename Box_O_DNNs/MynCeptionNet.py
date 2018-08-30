@@ -46,9 +46,10 @@ class MeCeptionNet:
     @staticmethod
     def build(width, height, depth, classes, 
                 activation='elu', n_layers=1, depth0=64, 
-                kernel_size=3, dropout_rate=0.5, pool_size=1,
-                stride_size=2, use_bias=False, zero_pad=False, 
-                n_towers=3, kernel_sizes = [3,5,1], n_skip_junc_gap=0):
+                n_towers = 3, kernel_sizes = [3,5,1], 
+                dropout_rate=0.5, pool_size=1,
+                stride_size=2, use_bias=False, 
+                n_skip_junc_gap=0):
         
         # could kernel_sizes == [5,3,1] instead? 
         #   Then kernel_sizes == [max_kernel, max_kernel-2, ..., max_kernel-2*n_towers]

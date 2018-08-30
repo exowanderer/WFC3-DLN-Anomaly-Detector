@@ -31,7 +31,7 @@ ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_siz
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
 ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=5, help='Select the number of convolutional layers from 1 to 5.')
-ap.add_argument('-d0', '--depth0', type=partial(greater_than, min=1), required=False, default=32, help='The depth of the first Conv2D layer; subsequent layers are double in depth, and half in width.')
+ap.add_argument('-d0', '--depth0', type=partial(greater_than, min=1), required=False, default=64, help='The depth of the first Conv2D layer; subsequent layers are double in depth, and half in width.')
 ap.add_argument('-ks', '--kernel_size', type=partial(greater_than, min=3), required=False, default=3, help='Select the size of the Conv2D kernel (symmetric).')
 ap.add_argument('-dr0', '--dropout_rate0', type=in_range, required=False, default=0.25, help='Select the Conv2D layer dropout rate.')
 ap.add_argument('-dr1', '--dropout_rate1', type=in_range, required=False, default=0.50, help='Select the Top, Dense layer dropout rate.')
@@ -63,6 +63,15 @@ STRIDE_SIZE   = args['stride_size']
 USE_BIAS      = args['use_bias']
 ZERO_PAD      = args['zero_pad']
 ZERO_PAD_SIZE = args['zero_pad_size']
+
+# FINDME: add_argument for each of these
+N_TOWERS = 3
+KERNEL_SIZES = [3,5,1]
+DROPOUT_RATE = 0.5
+POOL_SIZE = 1
+STRIDE_SIZE = 2
+USE_BIAS = False
+N_SKIP_JUNC_GAP = 0
 
 from matplotlib import use
 use('Agg')
@@ -159,12 +168,12 @@ print("[INFO] compiling model...")
 N_CLASSES = len(lb.classes_)
 
 model = MynCeptionNet.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
-                        depth=IMAGE_DIMS[2], classes=N_CLASSES, 
-                        activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
-                        kernel_size=KERNEL_SIZE, dropout_rate=[DROPOUT_RATE0,DROPOUT_RATE1], 
-                        pool_size=POOL_SIZE, stride_size=STRIDE_SIZE, 
-                        use_bias=USE_BIAS, zero_pad=ZERO_PAD, 
-                        zero_pad_size=ZERO_PAD_SIZE)
+                            depth=IMAGE_DIMS[2], classes=N_CLASSES,
+                            activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
+                            n_towers = N_TOWERS, kernel_sizes = KERNEL_SIZES, 
+                            dropout_rate=DROPOUT_RATE, pool_size=POOL_SIZE,
+                            stride_size=STRIDE_SIZE, use_bias=USE_BIAS, 
+                            n_skip_junc_gap=N_SKIP_JUNC_GAP)
 
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
