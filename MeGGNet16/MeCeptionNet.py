@@ -43,10 +43,13 @@ def inception_module(input_layer, activation='elu', n_towers = 3,
 class MeCeptionNet:
     @staticmethod
     def build(width, height, depth, classes, 
-                activation='elu', n_layers=1, depth0=32, 
+                activation='elu', n_layers=1, depth0=64, 
                 kernel_size=3, dropout_rate=0.5, pool_size=2,
                 stride_size=2, use_bias=False, zero_pad=False, 
-                n_skip_junc_gap=0):
+                n_towers=3, kernel_sizes = [3,5,1], n_skip_junc_gap=0):
+        
+        # could kernel_sizes == [5,3,1] instead? 
+        #   Then kernel_sizes == [max_kernel, max_kernel-2, ..., max_kernel-2*n_towers]
         
         # initialize the model along with the input shape to be
         # "channels last" and the channels dimension itself
@@ -65,9 +68,9 @@ class MeCeptionNet:
         model = BatchNormalization(axis=chanDim)(model)
         """
         for k in range(n_layers):
-            model = inception_module(model, activation='elu', 
-                                      depth1 = 64, depth2 = 64, depth3 = 64,
-                                      kernel_size_1 = 3, kernel_size_2 = 5, stride_size = 1)
+            model = inception_module(model, activation='elu', n_towers=n_towers,
+                                      depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
+                                      kernel_sizes = kernel_sizes)
             
             model = BatchNormalization(axis=chanDim)(model)
             
