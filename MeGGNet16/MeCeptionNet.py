@@ -10,18 +10,20 @@ from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
 def inception_module(input_layer, activation='elu', n_towers = 3,
-                      depths=[64,64,64], kernel_sizes = [3,5,1]):
+                      depths=[64, 64,64,64], kernel_sizes = [3,5,1]):
     
+    depthSpare = depths[0]
     ones_kernel = (1,1)
     kernels_size = []
     kernels_size = [(ksize, ksize) for ksize in kernel_sizes]
     
     stride_sizes = (stride_size, stride_size)
     
-    towers = []
+    towers = [Conv2D(depthSpare, ones_kernel, padding='same', activation=activation)(input_layer)]
+    
     for k in range(n_towers):
-        tower = Conv2D(depth[k], ones_kernel, padding='same', activation=activation)(input_layer)
-        tower = Conv2D(depth[k], kernels_size[k], padding='same', activation=activation)(tower)
+        tower = Conv2D(depth[k+1], ones_kernel, padding='same', activation=activation)(input_layer)
+        tower = Conv2D(depth[k+1], kernels_size[k], padding='same', activation=activation)(tower)
         towers.append(tower)
     
     """
