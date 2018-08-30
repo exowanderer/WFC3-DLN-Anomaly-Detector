@@ -8,7 +8,7 @@ import numpy as np
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
-def inception_module(input_layer, activation='elu', n_towers = 3,
+def inception_module(input_layer, activation='elu', n_towers = 3, pool_size = 1,
                       depths=[64,64,64,64], kernel_sizes = [3,5,1]):
     
     depthSpare = depths[0]
@@ -20,7 +20,7 @@ def inception_module(input_layer, activation='elu', n_towers = 3,
     
     towers = [Conv2D(depthSpare, ones_kernel, padding='same', activation=activation)(input_layer)]
     
-    for k in range(n_towers):
+    for k in range(n_towers-1):
         tower = Conv2D(depth[k+1], ones_kernel, padding='same', activation=activation)(input_layer)
         tower = Conv2D(depth[k+1], kernels_size[k], padding='same', activation=activation)(tower)
         towers.append(tower)
@@ -31,11 +31,14 @@ def inception_module(input_layer, activation='elu', n_towers = 3,
     
     tower_2 = Conv2D(depth2, ones_kernel, padding='same', activation=activation)(input_layer)
     tower_2 = Conv2D(depth2, kernel_size_2, padding='same', activation=activation)(tower_2)
-    
-    tower_3 = MaxPooling2D(kernel_size_1, strides=stride_size, padding='same')(input_layer)
-    tower_3 = Conv2D(depth3, kernel_size_0, padding='same', activation=activation)(tower_3)
-    towers = [tower_1, tower_2, tower_3]
     """
+    
+    # I assume that inception requires at least on MaxPool layer(?)
+    tower = MaxPooling2D(kernel_size_1, strides=stride_size, padding='same')(input_layer)
+    tower = Conv2D(depth[k+2], pool_size padding='same', activation=activation)(tower_3)
+    towers.append(tower)
+    
+    # towers = [tower_1, tower_2, tower_3]
     
     return keras.layers.concatenate(towers, axis = 3)
 
@@ -43,7 +46,7 @@ class MeCeptionNet:
     @staticmethod
     def build(width, height, depth, classes, 
                 activation='elu', n_layers=1, depth0=64, 
-                kernel_size=3, dropout_rate=0.5, pool_size=2,
+                kernel_size=3, dropout_rate=0.5, pool_size=1,
                 stride_size=2, use_bias=False, zero_pad=False, 
                 n_towers=3, kernel_sizes = [3,5,1], n_skip_junc_gap=0):
         
@@ -67,7 +70,8 @@ class MeCeptionNet:
         model = BatchNormalization(axis=chanDim)(model)
         """
         for k in range(n_layers):
-            model = inception_module(model, activation='elu', n_towers=n_towers,
+            model = inception_module(model, activation='elu', 
+                                      n_towers=n_towers, pool_size=pool_size,
                                       depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
                                       kernel_sizes = kernel_sizes)
             
