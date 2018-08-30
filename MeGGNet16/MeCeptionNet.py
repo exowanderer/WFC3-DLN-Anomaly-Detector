@@ -1,6 +1,6 @@
 from keras.models import Sequential
 from keras.layers.merge import Add
-from keras.layers.core import Flatten, Dense, Dropout
+from keras.layers.core import Flatten, Dense, Dropout, Input
 from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D. AveragePooling2D
 from keras.optimizers import SGD
 
@@ -9,28 +9,34 @@ import cv2, numpy as np
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
-def inception_module(input_layer, activation='elu', 
-                      depth1 = 64, depth2 = 64, depth3 = 64,
-                      kernel_size_1 = 3, kernel_size_2 = 5, stride_size = 1):
+def inception_module(input_layer, activation='elu', n_towers = 3,
+                      depths=[64,64,64], kernel_sizes = [3,5,1]):
     
-    if depth1 != depth2 and depth1 != depth3:
-        print('[WARNING] Inception technically is defined as depth1 = depth2 = depth3 = 64')
+    ones_kernel = (1,1)
+    kernels_size = []
+    kernels_size = [(ksize, ksize) for ksize in kernel_sizes]
     
-    kernel_size_0 = (1,1)
-    kernel_size_1 = (kernel_size_1, kernel_size_1)
-    kernel_size_2 = (kernel_size_2, kernel_size_2)
-    stride_size = (stride_size,stride_size)
+    stride_sizes = (stride_size, stride_size)
     
-    tower_1 = Conv2D(depth1, kernel_size_0, padding='same', activation=activation)(input_layer)
+    towers = []
+    for k in range(n_towers):
+        tower = Conv2D(depth[k], ones_kernel, padding='same', activation=activation)(input_layer)
+        tower = Conv2D(depth[k], kernels_size[k], padding='same', activation=activation)(tower)
+        towers.append(tower)
+    
+    """
+    tower_1 = Conv2D(depth1, ones_kernel, padding='same', activation=activation)(input_layer)
     tower_1 = Conv2D(depth1, kernel_size_1, padding='same', activation=activation)(tower_1)
     
-    tower_2 = Conv2D(depth2, kernel_size_0, padding='same', activation=activation)(input_layer)
+    tower_2 = Conv2D(depth2, ones_kernel, padding='same', activation=activation)(input_layer)
     tower_2 = Conv2D(depth2, kernel_size_2, padding='same', activation=activation)(tower_2)
     
     tower_3 = MaxPooling2D(kernel_size_1, strides=stride_size, padding='same')(input_layer)
     tower_3 = Conv2D(depth3, kernel_size_0, padding='same', activation=activation)(tower_3)
+    towers = [tower_1, tower_2, tower_3]
+    """
     
-    return keras.layers.concatenate([tower_1, tower_2, tower_3], axis = 3)
+    return keras.layers.concatenate(towers, axis = 3)
 
 class MeCeptionNet:
     @staticmethod
@@ -38,32 +44,25 @@ class MeCeptionNet:
                 activation='elu', n_layers=1, depth0=32, 
                 kernel_size=3, dropout_rate=0.5, pool_size=2,
                 stride_size=2, use_bias=False, zero_pad=False, 
-                zero_pad_size=1, n_skip_junc_gap=0):
-        
-        # VGG Default for depth0 is 64 (I'm making it smaller)
-        if isinstance(dropout_rate, float):
-            dropout_rate = [dropout_rate, dropout_rate]
-        
-        if not isinstance(dropout_rate, (list, tuple, np.ndarray)):
-            raise ValueError('`dropout_rate` must be either a float, or a 2-element list/tuple/array')
+                n_skip_junc_gap=0):
         
         # initialize the model along with the input shape to be
         # "channels last" and the channels dimension itself
-        inputShape = (height, width, depth)
-        
         chanDim = 2 # Tensorflow
         
-        from keras.layers import Input
-        input_img = Input(shape = inputShape)
+        # monochromatic images: depth == 1
+        inputShape = (height, width, depth)
         
-        # CONV => eLU => POOL
-        model = inception_module(input_layer, activation='elu', 
+        model = Input(shape = inputShape)
+        
+        """
+        model = inception_module(model, activation='elu', 
                                   depth1 = 64, depth2 = 64, depth3 = 64,
                                   kernel_size_1 = 3, kernel_size_2 = 5, stride_size = 1)
         
         model = BatchNormalization(axis=chanDim)(model)
-        
-        for k in range(1, n_layers):
+        """
+        for k in range(n_layers):
             model = inception_module(model, activation='elu', 
                                       depth1 = 64, depth2 = 64, depth3 = 64,
                                       kernel_size_1 = 3, kernel_size_2 = 5, stride_size = 1)
