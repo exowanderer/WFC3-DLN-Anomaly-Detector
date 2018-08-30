@@ -70,8 +70,9 @@ class MeCeptionNet:
             model = BatchNormalization(axis=chanDim)(model)
             
             if n_skip_junc_gap > 0 and k +1 % n_skip_junc_gap == 0:
-                jump_layer = BatchNormalization(axis=chanDim)(input_layer)
-                model = Add()([model, jump_layer])
+                with BatchNormalization(axis=chanDim)(input_layer) as skip_layer:
+                    # avoid layer confusion later by dissolving `skip_layer` automatically
+                    model = Add()([model, skip_layer])
         
         model = AveragePooling2D(pool_size=(1,1), padding='valid')
         model = Dropout(rate= dropout_rate)(model)
