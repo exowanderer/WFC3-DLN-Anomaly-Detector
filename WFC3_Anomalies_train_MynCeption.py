@@ -188,8 +188,8 @@ model = MynCeptionNet.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
                             stride_size=STRIDE_SIZE, use_bias=USE_BIAS, 
                             n_skip_junc_gap=N_SKIP_JUNC_GAP)
 
-# input_img = Input(shape = (32, 32, 3))
-model = Model(outputs = model)#inputs = input_img, 
+input_img = Input(shape = (32, 32, 3))
+model = Model(inputs = input_img, outputs = model)
 
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
