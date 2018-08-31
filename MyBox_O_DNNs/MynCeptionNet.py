@@ -9,7 +9,8 @@ from keras.layers import Input
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
-def inception_module(input_layer, activation='elu', n_towers = 3, pool_size = 1,
+def inception_module( input_layer, activation='elu', n_towers = 3, 
+                      pool_size = 1, stride_size=1,
                       depths=[64,64,64,64], kernel_sizes = [3,5,1]):
     
     depthSpare = depths[0]
@@ -35,7 +36,7 @@ def inception_module(input_layer, activation='elu', n_towers = 3, pool_size = 1,
     """
     
     # I assume that inception requires at least on MaxPool layer(?)
-    tower = MaxPooling2D(kernel_size_1, strides=stride_size, padding='same')(input_layer)
+    tower = MaxPooling2D(kernel_size_1, strides=stride_sizes, padding='same')(input_layer)
     tower = Conv2D(depth[k+2], pool_size, padding='same', activation=activation)(tower_3)
     towers.append(tower)
     
@@ -49,7 +50,7 @@ class MynCeptionNet:
                 activation='elu', n_layers=1, depth0=64, 
                 n_towers = 3, kernel_sizes = [3,5,1], 
                 dropout_rate=0.5, pool_size=1,
-                stride_size=2, use_bias=False, 
+                stride_size=1, use_bias=False, 
                 n_skip_junc_gap=0):
         
         # could kernel_sizes == [5,3,1] instead? 
