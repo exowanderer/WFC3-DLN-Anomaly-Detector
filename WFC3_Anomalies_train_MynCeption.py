@@ -33,7 +33,7 @@ def str2bool(input):
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 
-ap.add_argument("-d", "--dataset", type=str, required=True, help="path to input dataset (i.e., directory of images)")
+ap.add_argument("-d", "--dataset", type=str, required=false, default='dataset/', help="path to input dataset (i.e., directory of images)")
 ap.add_argument("-m", "--model", type=str, required=False, default='rename_me_wfc3_MynCeptionNet_model', help="path to output model")
 ap.add_argument("-l", "--labelbin", type=str, required=False, default='rename_me_lb', help="path to output label binarizer")
 ap.add_argument("-p", "--plot", type=str, required=False, default="rename_me_wfc3_MynCeptionNet_model_loss_acc.png", help="path to output accuracy/loss plot")
