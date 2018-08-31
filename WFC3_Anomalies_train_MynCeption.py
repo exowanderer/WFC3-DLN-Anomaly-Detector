@@ -25,7 +25,10 @@ def float_greater_than(value, min=0):
 
 def str2bool(input):
     if input.lower() in ['y', 't', 'true', True, 'yes']:
-        
+        return True
+    if input.lower() in ['n', 'f', 'false', False, 'no']:
+        return False
+    return True # if flag exists with no inputs; i.e. `python file.py --flag`
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -48,7 +51,7 @@ ap.add_argument('-dr', '--dropout_rate', type=in_range, required=False, default=
 ap.add_argument('-ps', '--pool_size', type=partial(int_greater_than, min=2), required=False, default=1, help='The size of the MaxPool2D pool size (symmetric).')
 ap.add_argument('-ss', '--stride_size', type=partial(int_greater_than, min=1), required=False, default=1, help='The size of the MaxPool2D stride size (symmetric).')
 ap.add_argument('-b', '--use_bias', type=str2bool, nargs='?', required=False, default=False, help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
-ap.add_argument('-zp', '--zero_pad', type=bool, required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
+ap.add_argument('-zp', '--zero_pad', type=str2bool, nargs='?', required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
 ap.add_argument('-zps', '--zero_pad_size', type=partial(int_greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
 ap.add_argument('-kss', '--kernel_sizes', type=partial(int_greater_than, min=1), nargs='?', required=False, default=1, help="Select the kernel sizes per tower: MUST be list of integers, with len == n_towers.")
 ap.add_argument('-nsjg', '--n_skip_junc_gap', type=partial(int_greater_than, min=1), required=False, default=1, help="Number of inception layers before a skip junction; 0 = no skip juncitons.")
