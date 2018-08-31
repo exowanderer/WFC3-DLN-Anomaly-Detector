@@ -1,7 +1,7 @@
 from keras.models import Sequential
 from keras.layers.merge import Add
 from keras.layers.core import Flatten, Dense, Dropout, Input
-from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D. AveragePooling2D
+from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
 
 import numpy as np
 
