@@ -67,7 +67,7 @@ except:
 DATASET = args["dataset"] if 'dataset' in args.keys() else ap.get_default('dataset')
 EPOCHS = args["niters"] if 'niters' in args.keys() else ap.get_default('niters')
 INIT_LR = args["l_rate"] if 'l_rate' in args.keys() else ap.get_default('l_rate')
-BS = args["batch_size"] if 'batch_size' in args.keys() else ap.get_default('batch_size')
+BATCH_SIZE = args["batch_size"] if 'batch_size' in args.keys() else ap.get_default('batch_size')
 IM_SIZE = args['image_size'] if 'image_size' in args.keys() else ap.get_default('image_size')
 IM_DEPTH = args['image_depth'] if 'image_depth' in args.keys() else ap.get_default('image_depth')
 IMAGE_DIMS = (IM_SIZE,IM_SIZE,IM_DEPTH)
@@ -170,9 +170,9 @@ aug = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
 # early_stopping = keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, mode='max',
 #                                                 verbose=1, baseline=args["min_val_acc"])
 
-tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BS, write_graph=True,
-                     write_grads=False, write_images=False, embeddings_freq=0,
-                     embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
+tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, 
+                        write_graph=True, write_grads=False, write_images=False, embeddings_freq=0,
+                        embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
 
 # testcall = TestCallback((X_test, Y_test))
 
@@ -185,7 +185,7 @@ width=IMAGE_DIMS[1]
 height=IMAGE_DIMS[0], 
 depth=IMAGE_DIMS[2] # 1 = monochromatic
 
-input_layer = Input(shape = (height, width, depth))
+input_layer = Input(shape = (BATCH_SIZE,))
 
 model = MynCeptionNet.build(input_layer, classes=N_CLASSES,
                             activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
@@ -206,9 +206,9 @@ print(model.summary())
 print("[INFO] training network...")
 start = time()
 H = model.fit_generator(
-    aug.flow(trainX, trainY, batch_size=BS),
+    aug.flow(trainX, trainY, batch_size=BATCH_SIZE),
     validation_data=(testX, testY),
-    steps_per_epoch=len(trainX) // BS,
+    steps_per_epoch=len(trainX) // BATCH_SIZE,
     epochs=EPOCHS, verbose=1,
     callbacks=callbacks_list,
     shuffle=True)
