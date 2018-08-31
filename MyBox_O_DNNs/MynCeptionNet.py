@@ -89,7 +89,7 @@ class MeCeptionNet:
         model = Flatten()(model)
         
         # return the constructed network architecture
-        reutrn Dense(classes, activation='softmax')(model)
+        return Dense(classes, activation='softmax')(model)
 
 if __name__ == '__main__':
     width, height, depth, classes = 10,10,3,2
