@@ -37,7 +37,7 @@ def inception_module( input_layer, activation='elu', n_towers = 3,
     
     # I assume that inception requires at least on MaxPool layer(?)
     tower = MaxPooling2D(kernels_size[-1], strides=stride_sizes, padding='same')(input_layer)
-    tower = Conv2D(depths[-1], pool_size, padding='same', activation=activation)(tower_3)
+    tower = Conv2D(depths[-1], pool_size, padding='same', activation=activation)(tower)
     towers.append(tower)
     
     # towers = [tower_1, tower_2, tower_3]
