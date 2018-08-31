@@ -9,12 +9,23 @@ def in_range(value, min=0, max=1, dtype=float):
     
     raise argparse.ArgumentTypeError("{} is invalid; the `dropout_rate` must be either from [0,1] (inclusive).".format(value))
     
-def greater_than(value, min=0):
+def int_greater_than(value, min=0):
     ivalue = int(value)
     if min <= ivalue:
          return ivalue
     
-    raise argparse.ArgumentTypeError("{} is invalid; `n_layers` must be either 1, 2, 3, 4, or 5.".format(value))
+    raise argparse.ArgumentTypeError("{} is invalid; Value must be a positive integer.".format(value))
+
+def float_greater_than(value, min=0):
+    fvalue = float(value)
+    if min <= fvalue:
+         return fvalue
+    
+    raise argparse.ArgumentTypeError("{} is invalid; Value must be beteween [0, 1]".format(value))
+
+def str2bool(input):
+    if input.lower() in ['y', 't', 'true', True, 'yes']:
+        
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -30,48 +41,47 @@ ap.add_argument("-bs", "--batch_size", type=int, required=False, help="batch_siz
 ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_size per iteration", default=100)
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
-ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=5, help='Select the number of convolutional layers from 1 to 5.')
-ap.add_argument('-d0', '--depth0', type=partial(greater_than, min=1), required=False, default=64, help='The depth of the first Conv2D layer; subsequent layers are double in depth, and half in width.')
-ap.add_argument('-ks', '--kernel_size', type=partial(greater_than, min=3), required=False, default=3, help='Select the size of the Conv2D kernel (symmetric).')
-ap.add_argument('-dr0', '--dropout_rate0', type=in_range, required=False, default=0.25, help='Select the Conv2D layer dropout rate.')
-ap.add_argument('-dr1', '--dropout_rate1', type=in_range, required=False, default=0.50, help='Select the Top, Dense layer dropout rate.')
-ap.add_argument('-ps', '--pool_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D pool size (symmetric).')
-ap.add_argument('-ss', '--stride_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D stride size (symmetric).')
-ap.add_argument('-b', '--use_bias', type=bool, required=False, default=False, help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
+ap.add_argument('-nl', '--n_layers', type=int, choices=partial(int_greater_than, min=1), required=False, default=1, help='Select the number of convolutional layers 1, or more')
+ap.add_argument('-nt', '--n_towers', type=partial(int_greater_than, min=1), required=False, default=1, help="Number of towers in the inception module; Default=3 (0 == only the 'side layer')")
+ap.add_argument('-d0', '--depth0', type=partial(int_greater_than, min=1), required=False, default=64, help='The depth of the Conv2D layers inside the inception module.')
+ap.add_argument('-dr', '--dropout_rate', type=in_range, required=False, default=0.5, help='Select the Dropout layer dropout rate.')
+ap.add_argument('-ps', '--pool_size', type=partial(int_greater_than, min=2), required=False, default=1, help='The size of the MaxPool2D pool size (symmetric).')
+ap.add_argument('-ss', '--stride_size', type=partial(int_greater_than, min=1), required=False, default=1, help='The size of the MaxPool2D stride size (symmetric).')
+ap.add_argument('-b', '--use_bias', type=str2bool, nargs='?', required=False, default=False, help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
 ap.add_argument('-zp', '--zero_pad', type=bool, required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
-ap.add_argument('-zps', '--zero_pad_size', type=partial(greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
+ap.add_argument('-zps', '--zero_pad_size', type=partial(int_greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
+ap.add_argument('-kss', '--kernel_sizes', type=partial(int_greater_than, min=1), nargs='?', required=False, default=1, help="Select the kernel sizes per tower: MUST be list of integers, with len == n_towers.")
+ap.add_argument('-nsjg', '--n_skip_junc_gap', type=partial(int_greater_than, min=1), required=False, default=1, help="Number of inception layers before a skip junction; 0 = no skip juncitons.")
 
 args = vars(ap.parse_args())
 
 # initialize the number of epochs to train for, initial learning rate,
 # batch size, and image dimensions
 
-EPOCHS        = args["niters"]#100
-INIT_LR       = args["l_rate"]#1e-3
-BS            = args["batch_size"] #32
-IM_SIZE       = args['image_size']
-IMAGE_DIMS    = (IM_SIZE,IM_SIZE,1)
+EPOCHS = args["niters"]#100
+INIT_LR = args["l_rate"]#1e-3
+BS = args["batch_size"] #32
+IM_SIZE = args['image_size']
+IMAGE_DIMS = (IM_SIZE,IM_SIZE,1)
 
-ACTIVATION    = args['activation']
-N_LAYERS      = args['n_layers']
-DEPTH0        = args['depth0']
-KERNEL_SIZE   = args['kernel_size']
+ACTIVATION = args['activation']
+N_LAYERS = args['n_layers']
+DEPTH0 = args['depth0']
+KERNEL_SIZE = args['kernel_size']
 DROPOUT_RATE0 = args['dropout_rate0']
 DROPOUT_RATE1 = args['dropout_rate1']
-POOL_SIZE     = args['pool_size']
-STRIDE_SIZE   = args['stride_size']
-USE_BIAS      = args['use_bias']
-ZERO_PAD      = args['zero_pad']
+POOL_SIZE = args['pool_size']
+STRIDE_SIZE = args['stride_size']
+USE_BIAS = args['use_bias']
+ZERO_PAD = args['zero_pad']
 ZERO_PAD_SIZE = args['zero_pad_size']
-
-# FINDME: add_argument for each of these
-N_TOWERS = 3
-KERNEL_SIZES = [3,5,1]
-DROPOUT_RATE = 0.5
-POOL_SIZE = 1
-STRIDE_SIZE = 2
-USE_BIAS = False
-N_SKIP_JUNC_GAP = 0
+N_TOWERS = args['n_towers']# 3
+KERNEL_SIZES = args['kernel_sizes']# [3,5,1]
+DROPOUT_RATE = args['dropout_rate']# 0.5
+POOL_SIZE = args['pool_size']# 1
+STRIDE_SIZE = args['stride_size']# 2
+USE_BIAS = args['use_bias']# False
+N_SKIP_JUNC_GAP = args['n_skip_junc_gap']# 0
 
 from matplotlib import use
 use('Agg')
