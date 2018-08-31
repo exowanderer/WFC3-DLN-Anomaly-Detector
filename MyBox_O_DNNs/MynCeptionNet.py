@@ -85,7 +85,7 @@ class MynCeptionNet:
                     # avoid layer confusion later by dissolving `skip_layer` automatically
                     model = Add()([model, skip_layer])
         
-        model = AveragePooling2D(pool_size=(1,1), padding='valid')
+        model = AveragePooling2D(pool_size=(1,1), padding='valid')(model)
         model = Dropout(rate= dropout_rate)(model)
         
         model = Flatten()(model)
