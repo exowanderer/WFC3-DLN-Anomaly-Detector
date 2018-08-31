@@ -70,7 +70,7 @@ class MynCeptionNet:
                                   depth1 = 64, depth2 = 64, depth3 = 64,
                                   kernel_size_1 = 3, kernel_size_2 = 5, stride_size = 1)
         
-        network = BatchNormalization(axis=chanDim)(model)
+        network = BatchNormalization(axis=chanDim)(network)
         """
         # network = input_layer
         
@@ -79,7 +79,7 @@ class MynCeptionNet:
         #                   depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
         #                   kernel_sizes = kernel_sizes)
         #
-        # network = BatchNormalization(axis=chanDim)(model)
+        # network = BatchNormalization(axis=chanDim)(network)
         # 
         # for k in range(n_layers):
         for k in range(1, n_layers):
@@ -88,17 +88,17 @@ class MynCeptionNet:
                                       depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
                                       kernel_sizes = kernel_sizes)
             
-            network = BatchNormalization(axis=chanDim)(model)
+            network = BatchNormalization(axis=chanDim)(network)
             
             if n_skip_junc_gap > 0 and k +1 % n_skip_junc_gap == 0:
                 with BatchNormalization(axis=chanDim)(input_layer) as skip_layer:
                     # avoid layer confusion later by dissolving `skip_layer` automatically
                     network = Add()([model, skip_layer])
         
-        network = AveragePooling2D(pool_size=(1,1), padding='valid')(model)
-        network = Dropout(rate= dropout_rate)(model)
+        network = AveragePooling2D(pool_size=(1,1), padding='valid')(network)
+        network = Dropout(rate= dropout_rate)(network)
         
-        network = Flatten()(model)
+        network = Flatten()(network)
         
         # return the constructed network architecture
         
