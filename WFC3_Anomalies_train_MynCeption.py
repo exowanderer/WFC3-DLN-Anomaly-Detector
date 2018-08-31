@@ -204,6 +204,7 @@ print(model.summary())
 
 # train the network
 print("[INFO] training network...")
+print(testX.shape, testY.shape, trainX.shape, trainY.shape)
 start = time()
 H = model.fit_generator(
     aug.flow(trainX, trainY, batch_size=BATCH_SIZE),
