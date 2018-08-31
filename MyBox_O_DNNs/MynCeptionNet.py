@@ -62,7 +62,7 @@ class MynCeptionNet:
         # monochromatic images: depth == 1
         inputShape = (height, width, depth)
         
-        model = InputLayer(shape = inputShape)
+        model = Input(shape = inputShape)
         
         """
         model = inception_module(model, activation='elu', 
