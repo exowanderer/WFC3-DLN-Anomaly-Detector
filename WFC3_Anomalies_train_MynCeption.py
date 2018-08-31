@@ -101,6 +101,7 @@ from imutils import paths
 
 from keras import backend as K
 from keras.callbacks import TensorBoard
+from keras.layers import Input
 from keras.models import Model
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
