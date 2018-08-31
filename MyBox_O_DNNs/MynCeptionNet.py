@@ -46,7 +46,7 @@ def inception_module( input_layer, activation='elu', n_towers = 3,
 
 class MynCeptionNet:
     @staticmethod
-    def build(width, height, depth, classes, 
+    def build(input_layer, #width, height, depth, classes, 
                 activation='elu', n_layers=1, depth0=64, 
                 n_towers = 3, kernel_sizes = [3,5,1], 
                 dropout_rate=0.5, pool_size=1,
@@ -63,7 +63,7 @@ class MynCeptionNet:
         # monochromatic images: depth == 1
         inputShape = (height, width, depth)
         
-        model = Input(shape = inputShape)
+        # model = Input(shape = inputShape)
         
         """
         model = inception_module(model, activation='elu', 
@@ -72,6 +72,15 @@ class MynCeptionNet:
         
         model = BatchNormalization(axis=chanDim)(model)
         """
+        model = input_layer
+        
+        # model = inception_module(model, activation='elu', 
+        #                   n_towers=n_towers, pool_size=pool_size,
+        #                   depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
+        #                   kernel_sizes = kernel_sizes)
+
+        # model = BatchNormalization(axis=chanDim)(model)
+        
         for k in range(n_layers):
             model = inception_module(model, activation='elu', 
                                       n_towers=n_towers, pool_size=pool_size,
@@ -102,7 +111,8 @@ if __name__ == '__main__':
                 stride_size=2, use_bias=False, zero_pad=False, 
                 zero_pad_size=1)
     
-    n_samples = 10
-    input_img = np.random.normal(0,1, (n_samples, width, height, depth))
+    # n_samples = 10
+    # input_img = np.random.normal(0,1, (n_samples, width, height, depth))
     
-    model = Model(inputs = input_img, outputs = network)
+    input_layer = Input(shape=(width, height, depth))
+    model = Model(inputs = input_layer, outputs = network)
