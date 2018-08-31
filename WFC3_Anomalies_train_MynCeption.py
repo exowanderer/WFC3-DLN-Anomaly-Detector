@@ -136,14 +136,15 @@ for imagePath in tqdm(imagePaths, total=len(imagePaths)):
     # extract the class label from the image path and update the
     # labels list
     label = imagePath.split(os.path.sep)[-2]
+    
     labels.append(label)
 
 # scale the raw pixel intensities to the range [0, 1]
 data = np.array(data, dtype="float16") / 255.0
 labels = np.array(labels)
-print("[INFO] data  matrix: {:.2f}MB".format(data.nbytes / (1024 * 1000.0)))
-print("[INFO] data  shape : {}".format(data.shape))
-print("[INFO] label shape : {}".format(labels.shape))
+print("[INFO] Input Data RAM Size: {:.2f}MB".format(data.nbytes / (1024 * 1000.0)))
+print("[INFO] Input Data Shape : {}".format(data.shape))
+print("[INFO] Input Label Shape : {}".format(labels.shape))
 
 # binarize the labels
 lb     = LabelBinarizer()
@@ -152,8 +153,12 @@ labels = lb.fit_transform(labels)
 # partition the data into training and testing splits using 80% of
 # the data for training and the remaining 20% for testing
 (trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.2, random_state=42)
-print(data.shape, labels.shape, trainX.shape, testX.shape, trainY.shape, testY.shape)
+print('[INFO] Train Data Shape: {}'.format(trainX.shape))
+print('[INFO] Train Labels Shape: {}'.format(testX.shape))
+print('[INFO] Test Data Shape: {}'.format(trainY.shape))
+print('[INFO] Test Labels Shape: {}'.format(testY.shape))
 # construct the image generator for data augmentation
+
 aug = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
     height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
     horizontal_flip=True, fill_mode="nearest")
