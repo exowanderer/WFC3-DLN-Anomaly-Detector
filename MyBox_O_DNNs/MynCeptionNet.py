@@ -101,6 +101,6 @@ if __name__ == '__main__':
                 zero_pad_size=1)
     
     n_samples = 10
-    input_img = np.random.normal(0,1, (n_samples, width, height, depth)
+    input_img = np.random.normal(0,1, (n_samples, width, height, depth))
     
-    Model(inputs = input_img, outputs = network)
+    model = Model(inputs = input_img, outputs = network)
