@@ -152,7 +152,7 @@ labels = lb.fit_transform(labels)
 # partition the data into training and testing splits using 80% of
 # the data for training and the remaining 20% for testing
 (trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.2, random_state=42)
-print(trainX.shape, testX.shape, trainY.shape, testY.shape)
+print(data.shape, labels.shape, trainX.shape, testX.shape, trainY.shape, testY.shape)
 # construct the image generator for data augmentation
 aug = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
     height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
@@ -204,7 +204,7 @@ print(model.summary())
 
 # train the network
 print("[INFO] training network...")
-print(testX.shape, testY.shape, trainX.shape, trainY.shape)
+
 start = time()
 H = model.fit_generator(
     aug.flow(trainX, trainY, batch_size=BATCH_SIZE),

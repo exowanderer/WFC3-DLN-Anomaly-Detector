@@ -83,10 +83,10 @@ class MynCeptionNet:
         network = Dropout(rate= dropout_rate)(network)
         
         network = Flatten()(network)
-        network = Dense(classes, activation='softmax')(network)
-        
+        # print(classes)
+        # print(network)
         # return the constructed network architecture
-        return network
+        return Dense(classes, activation='softmax')(network)
 
 if __name__ == '__main__':
     width, height, depth, classes = 10,10,3,2
