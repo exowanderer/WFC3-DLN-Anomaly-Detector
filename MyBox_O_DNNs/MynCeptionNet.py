@@ -74,7 +74,7 @@ class MynCeptionNet:
             
             network = BatchNormalization(axis=chanDim)(network)
             
-            if n_skip_junc_gap > 0 and k +1 % n_skip_junc_gap == 0:
+            if n_skip_junc_gap > 0 and k > 0 and k + 1 % n_skip_junc_gap == 0:
                 with BatchNormalization(axis=chanDim)(input_layer) as skip_layer:
                     # avoid layer confusion later by dissolving `skip_layer` automatically
                     network = Add()([network, skip_layer])
