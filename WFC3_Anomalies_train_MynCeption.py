@@ -101,7 +101,7 @@ from imutils import paths
 
 from keras import backend as K
 from keras.callbacks import TensorBoard
-from keras.layers import Input
+from keras.layers import InputLayer
 from keras.models import Model
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
@@ -185,7 +185,7 @@ width=IMAGE_DIMS[1]
 height=IMAGE_DIMS[0], 
 depth=IMAGE_DIMS[2] # 1 = monochromatic
 
-input_layer = Input(shape = (height, width, depth,))
+input_layer = InputLayer(shape = (height, width, depth,))
 
 model = MynCeptionNet.build(input_layer, classes=N_CLASSES,
                             activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
