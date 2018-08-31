@@ -45,7 +45,7 @@ ap.add_argument("-is", "--image_size", type=int, required=False, default=100, he
 ap.add_argument("-id", "--image_depth", type=int, required=False, default=1, help="color depth of image; 1 == monochromatic (default) ")
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
-ap.add_argument('-nl', '--n_layers', type=int, choices=partial(int_greater_than, min=1), required=False, default=1, help='Select the number of convolutional layers 1, or more')
+# ap.add_argument('-nl', '--n_layers', type=int, choices=partial(int_greater_than, min=1), required=False, default=1, help='Select the number of convolutional layers 1, or more')
 ap.add_argument('-nt', '--n_towers', type=partial(int_greater_than, min=1), required=False, default=1, help="Number of towers in the inception module; Default=3 (0 == only the 'side layer')")
 ap.add_argument('-d0', '--depth0', type=partial(int_greater_than, min=1), required=False, default=64, help='The depth of the Conv2D layers inside the inception module.')
 ap.add_argument('-dr', '--dropout_rate', type=in_range, required=False, default=0.5, help='Select the Dropout layer dropout rate.')
