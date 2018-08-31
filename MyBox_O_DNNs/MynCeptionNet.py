@@ -46,7 +46,7 @@ def inception_module( input_layer, activation='elu', n_towers = 3,
 
 class MynCeptionNet:
     @staticmethod
-    def build(input_layer, classes, #width, height, depth, 
+    def build(width, height, depth, classes, 
                 activation='elu', n_layers=1, depth0=64, 
                 n_towers = 3, kernel_sizes = [3,5,1], 
                 dropout_rate=0.5, pool_size=1,
@@ -61,46 +61,53 @@ class MynCeptionNet:
         chanDim = 2 # Tensorflow
         
         # monochromatic images: depth == 1
-        # inputShape = (height, width, depth)
+        inputShape = (height, width, depth)
         
-        # model = Input(shape = inputShape)
+        network = Input(shape = inputShape)
         
         """
-        model = inception_module(model, activation='elu', 
+        network = inception_module(model, activation='elu', 
                                   depth1 = 64, depth2 = 64, depth3 = 64,
                                   kernel_size_1 = 3, kernel_size_2 = 5, stride_size = 1)
         
-        model = BatchNormalization(axis=chanDim)(model)
+        network = BatchNormalization(axis=chanDim)(model)
         """
-        model = input_layer
+        # network = input_layer
         
-        # model = inception_module(model, activation='elu', 
+        # network = inception_module(model, activation='elu',
         #                   n_towers=n_towers, pool_size=pool_size,
         #                   depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
         #                   kernel_sizes = kernel_sizes)
-
-        # model = BatchNormalization(axis=chanDim)(model)
-        
-        for k in range(n_layers):
-            model = inception_module(model, activation='elu', 
+        #
+        # network = BatchNormalization(axis=chanDim)(model)
+        # 
+        # for k in range(n_layers):
+        for k in range(1, n_layers):
+            network = inception_module(model, activation='elu', 
                                       n_towers=n_towers, pool_size=pool_size,
                                       depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
                                       kernel_sizes = kernel_sizes)
             
-            model = BatchNormalization(axis=chanDim)(model)
+            network = BatchNormalization(axis=chanDim)(model)
             
             if n_skip_junc_gap > 0 and k +1 % n_skip_junc_gap == 0:
                 with BatchNormalization(axis=chanDim)(input_layer) as skip_layer:
                     # avoid layer confusion later by dissolving `skip_layer` automatically
-                    model = Add()([model, skip_layer])
+                    network = Add()([model, skip_layer])
         
-        model = AveragePooling2D(pool_size=(1,1), padding='valid')(model)
-        model = Dropout(rate= dropout_rate)(model)
+        network = AveragePooling2D(pool_size=(1,1), padding='valid')(model)
+        network = Dropout(rate= dropout_rate)(model)
         
-        model = Flatten()(model)
+        network = Flatten()(model)
         
         # return the constructed network architecture
-        return Dense(classes, activation='softmax')(model)
+        
+        model = Sequential()
+        
+        model.add(network)
+        model.add(Dense(classes, activation='softmax'))
+        
+        return model
 
 if __name__ == '__main__':
     width, height, depth, classes = 10,10,3,2
