@@ -42,7 +42,7 @@ ap.add_argument("-ni", "--niters", type=int, required=False, help="number of ite
 ap.add_argument("-lr", "--l_rate", type=float, required=False, help="initial learning rate", default=1e-3)
 ap.add_argument("-bs", "--batch_size", type=int, required=False, help="batch_size per iteration", default=32)
 ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_size per iteration", default=100)
-ap.add_argument("-is", "--image_depth", type=int, required=False, help="color depth of image; 1 == monochromatic (default) ", default=1)
+ap.add_argument("-id", "--image_depth", type=int, required=False, help="color depth of image; 1 == monochromatic (default) ", default=1)
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
 ap.add_argument('-nl', '--n_layers', type=int, choices=partial(int_greater_than, min=1), required=False, default=1, help='Select the number of convolutional layers 1, or more')
