@@ -64,7 +64,7 @@ except:
 
 # initialize the number of epochs to train for, initial learning rate,
 # batch size, and image dimensions
-
+DATASET = args["dataset"] if 'dataset' in args.keys() else ap.get_default('dataset')
 EPOCHS = args["niters"] if 'niters' in args.keys() else ap.get_default('niters')
 INIT_LR = args["l_rate"] if 'l_rate' in args.keys() else ap.get_default('l_rate')
 BS = args["batch_size"] if 'batch_size' in args.keys() else ap.get_default('batch_size')
@@ -119,7 +119,7 @@ labels  = []
 
 # grab the image paths and randomly shuffle them
 print("[INFO] loading images...")
-imagePaths  = sorted(list(paths.list_images(args["dataset"])))
+imagePaths  = sorted(list(paths.list_images(DATASET)))
 random.seed(42)
 random.shuffle(imagePaths)
 
