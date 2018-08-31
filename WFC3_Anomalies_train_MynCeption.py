@@ -101,6 +101,7 @@ from imutils import paths
 
 from keras import backend as K
 from keras.callbacks import TensorBoard
+from keras.models import Model
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing.image import img_to_array
@@ -186,6 +187,9 @@ model = MynCeptionNet.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
                             dropout_rate=DROPOUT_RATE, pool_size=POOL_SIZE,
                             stride_size=STRIDE_SIZE, use_bias=USE_BIAS, 
                             n_skip_junc_gap=N_SKIP_JUNC_GAP)
+
+input_img = Input(shape = (32, 32, 3))
+model = Model(inputs = input_img, outputs = out)
 
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
