@@ -59,7 +59,7 @@ ap.add_argument('-nsjg', '--n_skip_junc_gap', type=partial(int_greater_than, min
 
 try:
     args = vars(ap.parse_args())
-excpet:
+except:
     args = {}
 
 # initialize the number of epochs to train for, initial learning rate,
