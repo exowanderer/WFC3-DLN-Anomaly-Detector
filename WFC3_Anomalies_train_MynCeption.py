@@ -42,6 +42,7 @@ ap.add_argument("-ni", "--niters", type=int, required=False, help="number of ite
 ap.add_argument("-lr", "--l_rate", type=float, required=False, help="initial learning rate", default=1e-3)
 ap.add_argument("-bs", "--batch_size", type=int, required=False, help="batch_size per iteration", default=32)
 ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_size per iteration", default=100)
+ap.add_argument("-is", "--image_depth", type=int, required=False, help="color depth of image; 1 == monochromatic (default) ", default=1)
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
 ap.add_argument('-nl', '--n_layers', type=int, choices=partial(int_greater_than, min=1), required=False, default=1, help='Select the number of convolutional layers 1, or more')
@@ -53,38 +54,36 @@ ap.add_argument('-ss', '--stride_size', type=partial(int_greater_than, min=1), r
 ap.add_argument('-b', '--use_bias', type=str2bool, nargs='?', required=False, default=False, help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
 ap.add_argument('-zp', '--zero_pad', type=str2bool, nargs='?', required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
 ap.add_argument('-zps', '--zero_pad_size', type=partial(int_greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
-ap.add_argument('-kss', '--kernel_sizes', type=partial(int_greater_than, min=1), nargs='?', required=False, default=1, help="Select the kernel sizes per tower: MUST be list of integers, with len == n_towers.")
-ap.add_argument('-nsjg', '--n_skip_junc_gap', type=partial(int_greater_than, min=1), required=False, default=1, help="Number of inception layers before a skip junction; 0 = no skip juncitons.")
+ap.add_argument('-kss', '--kernel_sizes', type=partial(int_greater_than, min=1), nargs='?', required=False, default=[3,5,1], help="Select the kernel sizes per tower: MUST be list of integers, with len == n_towers.")
+ap.add_argument('-nsjg', '--n_skip_junc_gap', type=partial(int_greater_than, min=1), required=False, default=0, help="Number of inception layers before a skip junction; 0 = no skip juncitons.")
 
-args = vars(ap.parse_args())
+try:
+    args = vars(ap.parse_args())
+excpet:
+    args = {}
 
 # initialize the number of epochs to train for, initial learning rate,
 # batch size, and image dimensions
 
-EPOCHS = args["niters"]#100
-INIT_LR = args["l_rate"]#1e-3
-BS = args["batch_size"] #32
-IM_SIZE = args['image_size']
-IMAGE_DIMS = (IM_SIZE,IM_SIZE,1)
+EPOCHS = args["niters"] if 'niters' in args.keys() else ap.get_default('niters')
+INIT_LR = args["l_rate"] if 'l_rate' in args.keys() else ap.get_default('l_rate')
+BS = args["batch_size"] if 'batch_size' in args.keys() else ap.get_default('batch_size')
+IM_SIZE = args['image_size'] if 'image_size' in args.keys() else ap.get_default('image_size')
+IM_DEPTH = args['image_depth'] if 'image_depth' in args.keys() else ap.get_default('image_depth')
+IMAGE_DIMS = (IM_SIZE,IM_SIZE,IM_DEPTH)
 
-ACTIVATION = args['activation']
-N_LAYERS = args['n_layers']
-DEPTH0 = args['depth0']
-KERNEL_SIZE = args['kernel_size']
-DROPOUT_RATE0 = args['dropout_rate0']
-DROPOUT_RATE1 = args['dropout_rate1']
-POOL_SIZE = args['pool_size']
-STRIDE_SIZE = args['stride_size']
-USE_BIAS = args['use_bias']
-ZERO_PAD = args['zero_pad']
-ZERO_PAD_SIZE = args['zero_pad_size']
-N_TOWERS = args['n_towers']# 3
-KERNEL_SIZES = args['kernel_sizes']# [3,5,1]
-DROPOUT_RATE = args['dropout_rate']# 0.5
-POOL_SIZE = args['pool_size']# 1
-STRIDE_SIZE = args['stride_size']# 2
-USE_BIAS = args['use_bias']# False
-N_SKIP_JUNC_GAP = args['n_skip_junc_gap']# 0
+ACTIVATION = args['activation'] if 'activation' in args.keys() else ap.get_default('activation')
+N_LAYERS = args['n_layers'] if 'n_layers' in args.keys() else ap.get_default('n_layers')
+DEPTH0 = args['depth0'] if 'depth0' in args.keys() else ap.get_default('depth0')
+DROPOUT_RATE = args['dropout_rate'] if 'dropout_rate' in args.keys() else ap.get_default('dropout_rate')
+POOL_SIZE = args['pool_size'] if 'pool_size' in args.keys() else ap.get_default('pool_size')
+STRIDE_SIZE = args['stride_size'] if 'stride_size' in args.keys() else ap.get_default('stride_size')
+USE_BIAS = args['use_bias'] if 'use_bias' in args.keys() else ap.get_default('use_bias')
+ZERO_PAD = args['zero_pad'] if 'zero_pad' in args.keys() else ap.get_default('zero_pad')
+ZERO_PAD_SIZE = args['zero_pad_size'] if 'zero_pad_size' in args.keys() else ap.get_default('zero_pad_size')
+N_TOWERS = args['n_towers'] if 'n_towers' in args.keys() else ap.get_default('n_towers')
+KERNEL_SIZES = args['kernel_sizes'] if 'kernel_sizes' in args.keys() else ap.get_default('kernel_sizes')
+N_SKIP_JUNC_GAP = args['n_skip_junc_gap'] if 'n_skip_junc_gap' in args.keys() else ap.get_default('n_skip_junc_gap')
 
 from matplotlib import use
 use('Agg')
