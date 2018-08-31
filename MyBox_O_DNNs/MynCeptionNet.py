@@ -46,7 +46,7 @@ def inception_module( input_layer, activation='elu', n_towers = 3,
 
 class MynCeptionNet:
     @staticmethod
-    def build(input_layer, #width, height, depth, classes, 
+    def build(input_layer, classes, #width, height, depth, 
                 activation='elu', n_layers=1, depth0=64, 
                 n_towers = 3, kernel_sizes = [3,5,1], 
                 dropout_rate=0.5, pool_size=1,
@@ -61,7 +61,7 @@ class MynCeptionNet:
         chanDim = 2 # Tensorflow
         
         # monochromatic images: depth == 1
-        inputShape = (height, width, depth)
+        # inputShape = (height, width, depth)
         
         # model = Input(shape = inputShape)
         
