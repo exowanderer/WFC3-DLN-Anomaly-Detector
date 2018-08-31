@@ -181,9 +181,9 @@ callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 print("[INFO] compiling model...")
 N_CLASSES = len(lb.classes_)
 
-width=IMAGE_DIMS[1]
-height=IMAGE_DIMS[0], 
-depth=IMAGE_DIMS[2] # 1 = monochromatic
+width = IMAGE_DIMS[1]
+height = IMAGE_DIMS[0], 
+depth = IMAGE_DIMS[2] # 1 = monochromatic
 
 input_layer = Input(shape = (height, width, depth,))
 
