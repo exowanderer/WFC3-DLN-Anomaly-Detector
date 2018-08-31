@@ -181,20 +181,20 @@ callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 print("[INFO] compiling model...")
 N_CLASSES = len(lb.classes_)
 
+height = IMAGE_DIMS[0] 
 width = IMAGE_DIMS[1]
-height = IMAGE_DIMS[0], 
 depth = IMAGE_DIMS[2] # 1 = monochromatic
 
-input_layer = Input(shape=(100, 100, 1)) #Input(shape = (height, width, depth,))
+# input_layer = Input(shape = (height, width, depth,))
 
-model = MynCeptionNet.build(input_layer, classes=N_CLASSES,
+model = MynCeptionNet.build(height, width, depth, classes=N_CLASSES,#input_layer, 
                             activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
                             n_towers = N_TOWERS, kernel_sizes = KERNEL_SIZES, 
                             dropout_rate=DROPOUT_RATE, pool_size=POOL_SIZE,
                             stride_size=STRIDE_SIZE, use_bias=USE_BIAS, 
                             n_skip_junc_gap=N_SKIP_JUNC_GAP)
 
-model = Model(inputs = input_layer, outputs = model)
+# model = Model(inputs = input_layer, outputs = model)
 
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
