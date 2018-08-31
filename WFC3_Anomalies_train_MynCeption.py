@@ -70,7 +70,7 @@ INIT_LR = args["l_rate"] if 'l_rate' in args.keys() else ap.get_default('l_rate'
 BATCH_SIZE = args["batch_size"] if 'batch_size' in args.keys() else ap.get_default('batch_size')
 IM_SIZE = args['image_size'] if 'image_size' in args.keys() else ap.get_default('image_size')
 IM_DEPTH = args['image_depth'] if 'image_depth' in args.keys() else ap.get_default('image_depth')
-IMAGE_DIMS = (IM_SIZE,IM_SIZE,IM_DEPTH)
+IMAGE_DIMS = (int(IM_SIZE),int(IM_SIZE),int(IM_DEPTH))
 
 ACTIVATION = args['activation'] if 'activation' in args.keys() else ap.get_default('activation')
 N_LAYERS = args['n_layers'] if 'n_layers' in args.keys() else ap.get_default('n_layers')
@@ -101,7 +101,7 @@ from imutils import paths
 
 from keras import backend as K
 from keras.callbacks import TensorBoard
-from keras.layers import InputLayer
+from keras.layers import Input
 from keras.models import Model
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
@@ -185,7 +185,7 @@ width=IMAGE_DIMS[1]
 height=IMAGE_DIMS[0], 
 depth=IMAGE_DIMS[2] # 1 = monochromatic
 
-input_layer = InputLayer(shape = (height, width, depth,))
+input_layer = Input(shape = (height, width, depth,))
 
 model = MynCeptionNet.build(input_layer, classes=N_CLASSES,
                             activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
