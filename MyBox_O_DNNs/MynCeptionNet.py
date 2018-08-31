@@ -4,7 +4,7 @@ from keras.models import Sequential
 from keras.layers.merge import Add
 from keras.layers.core import Flatten, Dense, Dropout
 from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
-from keras.layers import Input
+from keras.layers import Input, concatenate as layers_concatenate
 
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -42,7 +42,7 @@ def inception_module( input_layer, activation='elu', n_towers = 3,
     
     # towers = [tower_1, tower_2, tower_3]
     
-    return keras.layers.concatenate(towers, axis = 3)
+    return layers_concatenate(towers, axis = 3)
 
 class MynCeptionNet:
     @staticmethod
