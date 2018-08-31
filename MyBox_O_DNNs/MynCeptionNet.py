@@ -43,7 +43,7 @@ def inception_module(input_layer, activation='elu', n_towers = 3, pool_size = 1,
     
     return keras.layers.concatenate(towers, axis = 3)
 
-class MeCeptionNet:
+class MynCeptionNet:
     @staticmethod
     def build(width, height, depth, classes, 
                 activation='elu', n_layers=1, depth0=64, 
