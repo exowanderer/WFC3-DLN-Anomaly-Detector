@@ -185,7 +185,7 @@ width = IMAGE_DIMS[1]
 height = IMAGE_DIMS[0], 
 depth = IMAGE_DIMS[2] # 1 = monochromatic
 
-input_layer = Input(shape = (height, width, depth,))
+input_layer = Input(shape=(100, 100, 1)) #Input(shape = (height, width, depth,))
 
 model = MynCeptionNet.build(input_layer, classes=N_CLASSES,
                             activation=ACTIVATION, n_layers=N_LAYERS, depth0=DEPTH0, 
