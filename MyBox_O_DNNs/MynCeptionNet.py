@@ -67,7 +67,7 @@ class MynCeptionNet:
         
         network = input_layer
         for k in range(n_layers):
-            network = inception_module(model, activation='elu', 
+            network = inception_module(network, activation='elu', 
                                       n_towers=n_towers, pool_size=pool_size,
                                       depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
                                       kernel_sizes = kernel_sizes)
@@ -77,7 +77,7 @@ class MynCeptionNet:
             if n_skip_junc_gap > 0 and k +1 % n_skip_junc_gap == 0:
                 with BatchNormalization(axis=chanDim)(input_layer) as skip_layer:
                     # avoid layer confusion later by dissolving `skip_layer` automatically
-                    network = Add()([model, skip_layer])
+                    network = Add()([network, skip_layer])
         
         network = AveragePooling2D(pool_size=(1,1), padding='valid')(network)
         network = Dropout(rate= dropout_rate)(network)
@@ -91,7 +91,8 @@ class MynCeptionNet:
 if __name__ == '__main__':
     width, height, depth, classes = 10,10,3,2
     
-    network = MeCeptionNet(width, height, depth, classes, 
+    input_layer = Input(shape=(width, height, depth))
+    network = MeCeptionNet(input_layer, classes, # width, height, depth
                 activation='elu', n_layers=5, depth0=32, 
                 kernel_size=3, dropout_rate=[0.25,0.5], pool_size=2,
                 stride_size=2, use_bias=False, zero_pad=False, 
@@ -100,5 +101,4 @@ if __name__ == '__main__':
     # n_samples = 10
     # input_img = np.random.normal(0,1, (n_samples, width, height, depth))
     
-    input_layer = Input(shape=(width, height, depth))
     model = Model(inputs = input_layer, outputs = network)
