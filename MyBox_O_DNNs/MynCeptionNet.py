@@ -46,7 +46,8 @@ def inception_module( input_layer, activation='elu', n_towers = 3,
 
 class MynCeptionNet:
     @staticmethod
-    def build(width, height, depth, classes, 
+    # def build(width, height, depth, classes,
+    def build(input_layer, classes, 
                 activation='elu', n_layers=1, depth0=64, 
                 n_towers = 3, kernel_sizes = [3,5,1], 
                 dropout_rate=0.5, pool_size=1,
@@ -61,28 +62,11 @@ class MynCeptionNet:
         chanDim = 2 # Tensorflow
         
         # monochromatic images: depth == 1
-        inputShape = (height, width, depth)
+        # inputShape = (height, width, depth)
+        # network = Input(shape = inputShape)
         
-        network = Input(shape = inputShape)
-        
-        """
-        network = inception_module(model, activation='elu', 
-                                  depth1 = 64, depth2 = 64, depth3 = 64,
-                                  kernel_size_1 = 3, kernel_size_2 = 5, stride_size = 1)
-        
-        network = BatchNormalization(axis=chanDim)(network)
-        """
-        # network = input_layer
-        
-        # network = inception_module(model, activation='elu',
-        #                   n_towers=n_towers, pool_size=pool_size,
-        #                   depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
-        #                   kernel_sizes = kernel_sizes)
-        #
-        # network = BatchNormalization(axis=chanDim)(network)
-        # 
-        # for k in range(n_layers):
-        for k in range(1, n_layers):
+        network = input_layer
+        for k in range(n_layers):
             network = inception_module(model, activation='elu', 
                                       n_towers=n_towers, pool_size=pool_size,
                                       depths=[depth0]*(n_towers+1), # +1 for the spare Conv2D layer
@@ -99,15 +83,10 @@ class MynCeptionNet:
         network = Dropout(rate= dropout_rate)(network)
         
         network = Flatten()(network)
+        network = Dense(classes, activation='softmax')(network)
         
         # return the constructed network architecture
-        
-        model = Sequential()
-        
-        model.add(network)
-        model.add(Dense(classes, activation='softmax'))
-        
-        return model
+        return network
 
 if __name__ == '__main__':
     width, height, depth, classes = 10,10,3,2
