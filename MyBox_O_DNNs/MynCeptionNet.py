@@ -61,10 +61,6 @@ class MynCeptionNet:
         # "channels last" and the channels dimension itself
         chanDim = 2 # Tensorflow
         
-        # monochromatic images: depth == 1
-        # inputShape = (height, width, depth)
-        # network = Input(shape = inputShape)
-        
         network = input_layer
         for k in range(n_layers):
             network = inception_module(network, activation='elu', 
@@ -83,8 +79,7 @@ class MynCeptionNet:
         network = Dropout(rate= dropout_rate)(network)
         
         network = Flatten()(network)
-        # print(classes)
-        # print(network)
+        
         # return the constructed network architecture
         return Dense(classes, activation='softmax')(network)
 
@@ -97,8 +92,5 @@ if __name__ == '__main__':
                 kernel_size=3, dropout_rate=[0.25,0.5], pool_size=2,
                 stride_size=2, use_bias=False, zero_pad=False, 
                 zero_pad_size=1)
-    
-    # n_samples = 10
-    # input_img = np.random.normal(0,1, (n_samples, width, height, depth))
     
     model = Model(inputs = input_layer, outputs = network)

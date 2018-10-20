@@ -41,28 +41,31 @@ ap.add_argument('-b', '--use_bias', type=bool, required=False, default=False, he
 ap.add_argument('-zp', '--zero_pad', type=bool, required=False, default=False, help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
 ap.add_argument('-zps', '--zero_pad_size', type=partial(greater_than, min=1), required=False, default=1, help="Select the kernel size for the zero pad between each Conv2D layer.")
 
-args = vars(ap.parse_args())
-
+try:
+    args = vars(ap.parse_args())
+    inputs_found = True
+except:
+    inputs_found = False
 # initialize the number of epochs to train for, initial learning rate,
 # batch size, and image dimensions
 
-EPOCHS        = args["niters"]#100
-INIT_LR       = args["l_rate"]#1e-3
-BS            = args["batch_size"] #32
-IM_SIZE       = args['image_size']
+EPOCHS        = args["niters"] if inputs_found else 
+INIT_LR       = args["l_rate"] if inputs_found else 
+BS            = args["batch_size"] if inputs_found else 
+IM_SIZE       = args['image_size'] if inputs_found else 
 IMAGE_DIMS    = (IM_SIZE,IM_SIZE,1)
 
-ACTIVATION    = args['activation']
-N_LAYERS      = args['n_layers']
-DEPTH0        = args['depth0']
-KERNEL_SIZE   = args['kernel_size']
-DROPOUT_RATE0 = args['dropout_rate0']
-DROPOUT_RATE1 = args['dropout_rate1']
-POOL_SIZE     = args['pool_size']
-STRIDE_SIZE   = args['stride_size']
-USE_BIAS      = args['use_bias']
-ZERO_PAD      = args['zero_pad']
-ZERO_PAD_SIZE = args['zero_pad_size']
+ACTIVATION    = args['activation'] if inputs_found else 
+N_LAYERS      = args['n_layers'] if inputs_found else 
+DEPTH0        = args['depth0'] if inputs_found else 
+KERNEL_SIZE   = args['kernel_size'] if inputs_found else 
+DROPOUT_RATE0 = args['dropout_rate0'] if inputs_found else 
+DROPOUT_RATE1 = args['dropout_rate1'] if inputs_found else 
+POOL_SIZE     = args['pool_size'] if inputs_found else 
+STRIDE_SIZE   = args['stride_size'] if inputs_found else 
+USE_BIAS      = args['use_bias'] if inputs_found else 
+ZERO_PAD      = args['zero_pad'] if inputs_found else 
+ZERO_PAD_SIZE = args['zero_pad_size'] if inputs_found else ap['zero_pad_size'].get_default()
 
 from matplotlib import use
 use('Agg')
