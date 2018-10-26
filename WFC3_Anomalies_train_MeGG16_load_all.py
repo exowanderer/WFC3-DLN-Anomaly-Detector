@@ -19,8 +19,7 @@ def greater_than(value, min=0):
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 
-ap.add_argument("-td", "--train_data", type=str, required=False, help="path to input dataset (i.e., directory of images)", default='train')
-ap.add_argument("-vd", "--validation_data", type=str, required=False, help="path to input dataset (i.e., directory of images)", default='validation')
+ap.add_argument("-d", "--dataset", type=str, required=False, help="path to input dataset (i.e., directory of images)", default='dataset')
 ap.add_argument("-m", "--model", type=str, required=False, help="path to output model", default='rename_me_wfc3_MeGGNet_model')
 ap.add_argument("-l", "--labelbin", type=str, required=False, help="path to output label binarizer", default='rename_me_lb')
 ap.add_argument("-p", "--plot", type=str, required=False, help="path to output accuracy/loss plot", default="rename_me_wfc3_MeGGNet_model_loss_acc.png")
@@ -31,9 +30,9 @@ ap.add_argument("-bs", "--batch_size", type=int, required=False, help="batch_siz
 ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_size per iteration", default=256)
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
-ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=1, help='Select the number of convolutional layers from 1 to 5.')
+ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=5, help='Select the number of convolutional layers from 1 to 5.')
 ap.add_argument('-d0', '--depth0', type=partial(greater_than, min=1), required=False, default=32, help='The depth of the first Conv2D layer; subsequent layers are double in depth, and half in width.')
-ap.add_argument('-ks', '--kernel_size', type=partial(greater_than, min=3), required=False, default=5, help='Select the size of the Conv2D kernel (symmetric).')
+ap.add_argument('-ks', '--kernel_size', type=partial(greater_than, min=3), required=False, default=3, help='Select the size of the Conv2D kernel (symmetric).')
 ap.add_argument('-dr0', '--dropout_rate0', type=in_range, required=False, default=0.25, help='Select the Conv2D layer dropout rate.')
 ap.add_argument('-dr1', '--dropout_rate1', type=in_range, required=False, default=0.50, help='Select the Top, Dense layer dropout rate.')
 ap.add_argument('-ps', '--pool_size', type=partial(greater_than, min=2), required=False, default=2, help='The size of the MaxPool2D pool size (symmetric).')
@@ -68,6 +67,8 @@ USE_BIAS = args['use_bias'] if inputs_found else ap['use_bias'].get_default()
 ZERO_PAD = args['zero_pad'] if inputs_found else ap['zero_pad'].get_default()
 ZERO_PAD_SIZE = args['zero_pad_size'] if inputs_found else ap['zero_pad_size'].get_default()
 
+N_CORES = args['ncores'] if inputs_found else ap['ncores'].get_default()
+
 from matplotlib import use
 use('Agg')
 
@@ -78,9 +79,10 @@ import numpy as np
 import os
 # import pickle
 import random
-
+ 
 # import the necessary packages
 from imutils import paths
+from glob import glob
 
 from keras import backend as K
 from keras.callbacks import TensorBoard
@@ -96,103 +98,61 @@ from tqdm import tqdm
 
 from tensorflow import ConfigProto, Session
 
-# initialize the data and labels
-trainX = []
-testX = []
-
-trainY = []
-testY = []
-
-args["train_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/train/"
-args["validation_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/validation/"
-test_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/test/"
-
-# grab the image paths and randomly shuffle them
-print("[INFO] loading training images...")
-train_filenames = sorted(list(paths.list_images(args["train_data"])))
-
-random.seed(42)
-random.shuffle(train_filenames)
-
-# loop over the input images
-for imagePath in tqdm(train_filenames, total=len(train_filenames)):
-    # load the image, pre-process it, and store it in the data list
-    image = cv2.imread(imagePath)
-    image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
-    image = img_to_array(image)[:,:,:1]
-    trainX.append(image)
-    
-    # extract the class label from the image path and update the
-    # labels list
-    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
-    trainY.append(label)
-
-# grab the image paths and randomly shuffle them
-print("[INFO] loading validation images...")
-validation_filenames = sorted(list(paths.list_images(args["validation_data"])))
-
-random.seed(42)
-random.shuffle(validation_filenames)
-
-# loop over the input images
-for imagePath in tqdm(validation_filenames, total=len(validation_filenames)):
-    # load the image, pre-process it, and store it in the data list
-    image = cv2.imread(imagePath)
-    image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
-    image = img_to_array(image)[:,:,:1]
-    testX.append(image)
-    
-    # extract the class label from the image path and update the
-    # labels list
-    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
-    testY.append(label)
-
-# scale the raw pixel intensities to the range [0, 1]
-trainX = np.array(trainX, dtype="float16") / 255.0
-testX = np.array(testX, dtype="float16") / 255.0
-trainY = np.array(trainY)
-testY = np.array(testY)
-print("[INFO] data  matrix: {:.2f}MB".format(trainX.nbytes / (1024 * 1000.0)))
-print("[INFO] data  shape : {}".format(trainX.shape))
-print("[INFO] label shape : {}".format(trainY.shape))
-
-# binarize the labels - one hot encoding
-lb     = LabelBinarizer()
-trainY = lb.fit_transform(trainY)
-testY = lb.transform(testY)
-
-# partition the data into training and testing splits using 80% of
-# the data for training and the remaining 20% for testing
-# (trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.2, random_state=42)
-print(trainX.shape, testX.shape, trainY.shape, testY.shape)
-
 # construct the image generator for data augmentation
-aug = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
+train_datagen = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
     height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
     horizontal_flip=True, fill_mode="nearest")
 
-# initialize the model
-# K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=32, inter_op_parallelism_threads=32)))
-# with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"], 
-#                                           inter_op_parallelism_threads=args["ncores"])) as sess:
-# with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"])) as sess:
-# K.set_session(sess)
+test_datagen = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
+    height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
+    horizontal_flip=True, fill_mode="nearest")
 
-
-# args["min_val_acc"] = 0.65
-# early_stopping = keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, mode='max',
-#                                                 verbose=1, baseline=args["min_val_acc"])
+val_datagen = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
+    height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
+    horizontal_flip=True, fill_mode="nearest")
 
 tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
                      write_grads=False, write_images=False, embeddings_freq=0,
                      embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
 
-# testcall = TestCallback((X_test, Y_test))
+train_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/train/"
+test_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/test/"
+val_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/validation/"
+
+train_generator = train_datagen.flow_from_directory(
+    directory=train_dir,
+    target_size=(IM_SIZE,IM_SIZE),
+    color_mode="grayscale",
+    batch_size=BATCH_SIZE,
+    class_mode="categorical",
+    shuffle=True,
+    seed=42
+)
+
+test_generator = test_datagen.flow_from_directory(
+    directory=test_dir,
+    target_size=(IM_SIZE,IM_SIZE),
+    color_mode="grayscale",
+    batch_size=BATCH_SIZE,
+    class_mode="categorical",
+    shuffle=True,
+    seed=42
+)
+
+valid_generator = val_datagen.flow_from_directory(
+    directory=val_dir,
+    target_size=(IM_SIZE,IM_SIZE),
+    color_mode="grayscale",
+    batch_size=BATCH_SIZE,
+    class_mode="categorical",
+    shuffle=True,
+    seed=42
+)
 
 callbacks_list = [tensboard]#[early_stopping, tensboard, testcall]
 
 print("[INFO] compiling model...")
-N_CLASSES = len(lb.classes_)
+N_CLASSES = len(glob(train_dir + '/*'))
 
 model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0], 
                         depth=IMAGE_DIMS[2], classes=N_CLASSES, 
@@ -201,7 +161,7 @@ model = MeGGNet16.build(width=IMAGE_DIMS[1], height=IMAGE_DIMS[0],
                         pool_size=POOL_SIZE, stride_size=STRIDE_SIZE, 
                         use_bias=USE_BIAS, zero_pad=ZERO_PAD, 
                         zero_pad_size=ZERO_PAD_SIZE)
-EPOCHS = 100
+
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
@@ -211,24 +171,38 @@ print(model.summary())
 # train the network
 print("[INFO] training network...")
 start = time()
-H = model.fit_generator(
-    aug.flow(trainX, trainY, batch_size=BATCH_SIZE),
-    validation_data=(testX, testY),
-    steps_per_epoch=len(trainX) // BATCH_SIZE,
-    epochs=EPOCHS, verbose=1,
-    callbacks=callbacks_list,
-    shuffle=True)
+
+STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
+STEP_SIZE_VALID = valid_generator.n//valid_generator.batch_size
+
+H = model.fit_generator(generator=train_generator,
+	                    steps_per_epoch=STEP_SIZE_TRAIN,
+	                    validation_data=valid_generator,
+	                    validation_steps=STEP_SIZE_VALID,
+	                    epochs=EPOCHS,
+						callbacks=callbacks_list,
+						shuffle=True)
+
 
 print('\n\n *** Full TensorFlow Training Took {} minutes'.format((time()-start)//60))
 # save the model to disk
 print("[INFO] serializing network...")
 model.save(args["model"])
 
-joblib.dump(H, args["model"].replace('model', 'model_output'))
+# H = model.fit_generator(generator=aug.flow(trainX, trainY, batch_size=BATCH_SIZE),
+# 					    validation_data=(testX, testY),
+# 					    steps_per_epoch=len(trainX) // BATCH_SIZE,
+# 					    epochs=EPOCHS, verbose=1,
+# 					    callbacks=callbacks_list,
+# 					    shuffle=True
+# 						)
+
+eval_out = model.evaluate_generator(generator=valid_generator)
+print(eval_out)
 
 # save the label binarizer to disk
-print("[INFO] serializing label binarizer...")
-joblib.dump(lb, args["labelbin"] + 'joblib.save')
+# print("[INFO] serializing label binarizer...")
+# joblib.dump(lb, args["labelbin"] + 'joblib.save')
 # f = open(args["labelbin"], "wb")
 # f.write(pickle.dumps(lb))
 # f.close()
@@ -246,19 +220,3 @@ plt.xlabel("Epoch #")
 plt.ylabel("Loss/Accuracy")
 plt.legend(loc="upper left")
 plt.savefig(args["plot"])
-
-
-''' AutoKeras Usage
-train_features = trainX[:,:,:,0]
-train_labels = np.where(trainY==1)[1]
-
-test_features = testX[:,:,:,0]
-test_labels = np.where(testY==1)[1]
-
-import autokeras as ak
-clf = ak.ImageClassifier()
-clf.fit(train_features, train_labels)
-results = clf.predict(test_features)
-
-'''
-
