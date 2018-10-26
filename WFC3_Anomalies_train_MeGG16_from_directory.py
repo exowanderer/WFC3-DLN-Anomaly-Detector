@@ -24,7 +24,7 @@ ap.add_argument("-m", "--model", type=str, required=False, help="path to output 
 ap.add_argument("-l", "--labelbin", type=str, required=False, help="path to output label binarizer", default='rename_me_lb')
 ap.add_argument("-p", "--plot", type=str, required=False, help="path to output accuracy/loss plot", default="rename_me_wfc3_MeGGNet_model_loss_acc.png")
 ap.add_argument("-nc", "--ncores", type=int, required=False, help="number of cpu cores to use; default == ALL", default=1)
-ap.add_argument("-ni", "--niters", type=int, required=False, help="number of iterations to use; default == 100", default=100)
+ap.add_argument("-ni", "--niters", type=int, required=False, help="number of iterations to use; default == 10", default=10)
 ap.add_argument("-lr", "--l_rate", type=float, required=False, help="initial learning rate", default=1e-3)
 ap.add_argument("-bs", "--batch_size", type=int, required=False, help="batch_size per iteration", default=32)
 ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_size per iteration", default=256)
