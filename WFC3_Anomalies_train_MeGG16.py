@@ -19,7 +19,8 @@ def greater_than(value, min=0):
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 
-ap.add_argument("-d", "--dataset", type=str, required=False, help="path to input dataset (i.e., directory of images)", default='dataset')
+ap.add_argument("-td", "--train_data", type=str, required=False, help="path to input dataset (i.e., directory of images)", default='train')
+ap.add_argument("-vd", "--validation_data", type=str, required=False, help="path to input dataset (i.e., directory of images)", default='validation')
 ap.add_argument("-m", "--model", type=str, required=False, help="path to output model", default='rename_me_wfc3_MeGGNet_model')
 ap.add_argument("-l", "--labelbin", type=str, required=False, help="path to output label binarizer", default='rename_me_lb')
 ap.add_argument("-p", "--plot", type=str, required=False, help="path to output accuracy/loss plot", default="rename_me_wfc3_MeGGNet_model_loss_acc.png")
@@ -96,43 +97,78 @@ from tqdm import tqdm
 from tensorflow import ConfigProto, Session
 
 # initialize the data and labels
-data    = []
-labels  = []
+trainX = []
+testX = []
+
+trainY = []
+testY = []
+
+# train_data    = []
+# labels  = []
+
+args["train_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/train/"
+args["validation_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/validation/"
+test_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/test/"
 
 # grab the image paths and randomly shuffle them
-print("[INFO] loading images...")
-imagePaths  = sorted(list(paths.list_images(args["dataset"])))
+print("[INFO] loading training images...")
+train_filenames = sorted(list(paths.list_images(args["train_data"])))
+
 random.seed(42)
-random.shuffle(imagePaths)
+random.shuffle(train_filenames)
 
 # loop over the input images
-for imagePath in tqdm(imagePaths, total=len(imagePaths)):
+for imagePath in tqdm(train_filenames, total=len(train_filenames)):
     # load the image, pre-process it, and store it in the data list
     image = cv2.imread(imagePath)
     image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
     image = img_to_array(image)[:,:,:1]
-    data.append(image)
+    trainX.append(image)
     
     # extract the class label from the image path and update the
     # labels list
-    label = imagePath.split(os.path.sep)[-2]
-    labels.append(label)
+    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
+    trainY.append(label)
+
+# grab the image paths and randomly shuffle them
+print("[INFO] loading validation images...")
+validation_filenames = sorted(list(paths.list_images(args["validation_data"])))
+
+random.seed(42)
+random.shuffle(validation_filenames)
+
+# loop over the input images
+for imagePath in tqdm(validation_filenames, total=len(validation_filenames)):
+    # load the image, pre-process it, and store it in the data list
+    image = cv2.imread(imagePath)
+    image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
+    image = img_to_array(image)[:,:,:1]
+    testX.append(image)
+    
+    # extract the class label from the image path and update the
+    # labels list
+    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
+    testY.append(label)
 
 # scale the raw pixel intensities to the range [0, 1]
-data = np.array(data, dtype="float16") / 255.0
-labels = np.array(labels)
-print("[INFO] data  matrix: {:.2f}MB".format(data.nbytes / (1024 * 1000.0)))
-print("[INFO] data  shape : {}".format(data.shape))
-print("[INFO] label shape : {}".format(labels.shape))
+trainX = np.array(trainX, dtype="float16") / 255.0
+testX = np.array(testX, dtype="float16") / 255.0
+trainY = np.array(trainY)
+testY = np.array(testY)
+print("[INFO] data  matrix: {:.2f}MB".format(trainX.nbytes / (1024 * 1000.0)))
+print("[INFO] data  shape : {}".format(trainX.shape))
+print("[INFO] label shape : {}".format(trainY.shape))
 
-# binarize the labels
+# binarize the labels - one hot encoding
 lb     = LabelBinarizer()
-labels = lb.fit_transform(labels)
+trainY = lb.fit_transform(trainY)
+testY = lb.transform(testY)
 
 # partition the data into training and testing splits using 80% of
 # the data for training and the remaining 20% for testing
-(trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.2, random_state=42)
+# (trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.2, random_state=42)
 print(trainX.shape, testX.shape, trainY.shape, testY.shape)
+
 # construct the image generator for data augmentation
 aug = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
     height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
@@ -190,6 +226,8 @@ print('\n\n *** Full TensorFlow Training Took {} minutes'.format((time()-start)/
 # save the model to disk
 print("[INFO] serializing network...")
 model.save(args["model"])
+
+joblib.dump(H, args["model"].replace('model', 'model_output'))
 
 # save the label binarizer to disk
 print("[INFO] serializing label binarizer...")

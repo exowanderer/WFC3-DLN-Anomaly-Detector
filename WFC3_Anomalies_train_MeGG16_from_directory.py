@@ -183,6 +183,12 @@ H = model.fit_generator(generator=train_generator,
 						callbacks=callbacks_list,
 						shuffle=True)
 
+
+print('\n\n *** Full TensorFlow Training Took {} minutes'.format((time()-start)//60))
+# save the model to disk
+print("[INFO] serializing network...")
+model.save(args["model"])
+
 # H = model.fit_generator(generator=aug.flow(trainX, trainY, batch_size=BATCH_SIZE),
 # 					    validation_data=(testX, testY),
 # 					    steps_per_epoch=len(trainX) // BATCH_SIZE,
@@ -192,15 +198,11 @@ H = model.fit_generator(generator=train_generator,
 # 						)
 
 eval_out = model.evaluate_generator(generator=valid_generator)
-
-print('\n\n *** Full TensorFlow Training Took {} minutes'.format((time()-start)//60))
-# save the model to disk
-print("[INFO] serializing network...")
-model.save(args["model"])
+print(eval_out)
 
 # save the label binarizer to disk
-print("[INFO] serializing label binarizer...")
-joblib.dump(lb, args["labelbin"] + 'joblib.save')
+# print("[INFO] serializing label binarizer...")
+# joblib.dump(lb, args["labelbin"] + 'joblib.save')
 # f = open(args["labelbin"], "wb")
 # f.write(pickle.dumps(lb))
 # f.close()
@@ -218,37 +220,3 @@ plt.xlabel("Epoch #")
 plt.ylabel("Loss/Accuracy")
 plt.legend(loc="upper left")
 plt.savefig(args["plot"])
-
-
-''' Expected Terminal Output
-
-$ $ python train.py --dataset dataset --model pokedex.model --labelbin lb.pickle
-Using TensorFlow backend.
-[INFO] loading images...
-[INFO] data matrix: 252.07MB
-[INFO] compiling model...
-[INFO] training network...
-name: GeForce GTX TITAN X
-major: 5 minor: 2 memoryClockRate (GHz) 1.076
-pciBusID 0000:09:00.0
-Total memory: 11.92GiB
-Free memory: 11.71GiB
-Epoch 1/100
-29/29 [
-=========================] - 2s - loss: 1.4015 - acc: 0.6088 - val_loss: 1.8745 - val_acc: 0.2134
-Epoch 2/100
-29/29 [==============================] - 1s - loss: 0.8578 - acc: 0.7285 - val_loss: 1.4539 - val_acc: 0.2971
-Epoch 3/100
-29/29 [==============================] - 1s - loss: 0.7370 - acc: 0.7809 - val_loss: 2.5955 - val_acc: 0.2008
-...
-Epoch 98/100
-29/29 [==============================] - 1s - loss: 0.0833 - acc: 0.9702 - val_loss: 0.2064 - val_acc: 0.9540
-Epoch 99/100
-29/29 [==============================] - 1s - loss: 0.0678 - acc: 0.9727 - val_loss: 0.2299 - val_acc: 0.9456
-Epoch 100/100
-29/29 [==============================] - 1s - loss: 0.0890 - acc: 0.9684 - val_loss: 0.1955 - val_acc: 0.9707
-[INFO] serializing network...
-[INFO] serializing label binarizer...
-
-
-'''
