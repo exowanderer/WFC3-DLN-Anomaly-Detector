@@ -50,22 +50,22 @@ except:
 # initialize the number of epochs to train for, initial learning rate,
 # batch size, and image dimensions
 
-EPOCHS        = args["niters"] if inputs_found else ap['niters'].get_default()
-INIT_LR       = args["l_rate"] if inputs_found else ap['l_rate'].get_default()
-BS            = args["batch_size"] if inputs_found else ap['batch_size'].get_default()
-IM_SIZE       = args['image_size'] if inputs_found else ap['image_size'].get_default()
-IMAGE_DIMS    = (IM_SIZE,IM_SIZE,1)
+EPOCHS = args["niters"] if inputs_found else ap['niters'].get_default()
+INIT_LR = args["l_rate"] if inputs_found else ap['l_rate'].get_default()
+BATCH_SIZE = args["batch_size"] if inputs_found else ap['batch_size'].get_default()
+IM_SIZE = args['image_size'] if inputs_found else ap['image_size'].get_default()
+IMAGE_DIMS = (IM_SIZE,IM_SIZE,1)
 
-ACTIVATION    = args['activation'] if inputs_found else ap['activation'].get_default()
-N_LAYERS      = args['n_layers'] if inputs_found else ap['n_layers'].get_default()
-DEPTH0        = args['depth0'] if inputs_found else ap['depth0'].get_default()
-KERNEL_SIZE   = args['kernel_size'] if inputs_found else ap['kernel_size'].get_default()
+ACTIVATION = args['activation'] if inputs_found else ap['activation'].get_default()
+N_LAYERS = args['n_layers'] if inputs_found else ap['n_layers'].get_default()
+DEPTH0 = args['depth0'] if inputs_found else ap['depth0'].get_default()
+KERNEL_SIZE = args['kernel_size'] if inputs_found else ap['kernel_size'].get_default()
 DROPOUT_RATE0 = args['dropout_rate0'] if inputs_found else ap['dropout_rate0'].get_default()
 DROPOUT_RATE1 = args['dropout_rate1'] if inputs_found else ap['dropout_rate1'].get_default()
-POOL_SIZE     = args['pool_size'] if inputs_found else ap['pool_size'].get_default()
-STRIDE_SIZE   = args['stride_size'] if inputs_found else ap['stride_size'].get_default()
-USE_BIAS      = args['use_bias'] if inputs_found else ap['use_bias'].get_default()
-ZERO_PAD      = args['zero_pad'] if inputs_found else ap['zero_pad'].get_default()
+POOL_SIZE = args['pool_size'] if inputs_found else ap['pool_size'].get_default()
+STRIDE_SIZE = args['stride_size'] if inputs_found else ap['stride_size'].get_default()
+USE_BIAS = args['use_bias'] if inputs_found else ap['use_bias'].get_default()
+ZERO_PAD = args['zero_pad'] if inputs_found else ap['zero_pad'].get_default()
 ZERO_PAD_SIZE = args['zero_pad_size'] if inputs_found else ap['zero_pad_size'].get_default()
 
 from matplotlib import use
@@ -102,9 +102,6 @@ testX = []
 
 trainY = []
 testY = []
-
-# train_data    = []
-# labels  = []
 
 args["train_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/train/"
 args["validation_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/validation/"
@@ -186,7 +183,7 @@ aug = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
 # early_stopping = keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, mode='max',
 #                                                 verbose=1, baseline=args["min_val_acc"])
 
-tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BS, write_graph=True,
+tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
                      write_grads=False, write_images=False, embeddings_freq=0,
                      embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
 
@@ -215,9 +212,9 @@ print(model.summary())
 print("[INFO] training network...")
 start = time()
 H = model.fit_generator(
-    aug.flow(trainX, trainY, batch_size=BS),
+    aug.flow(trainX, trainY, batch_size=BATCH_SIZE),
     validation_data=(testX, testY),
-    steps_per_epoch=len(trainX) // BS,
+    steps_per_epoch=len(trainX) // BATCH_SIZE,
     epochs=EPOCHS, verbose=1,
     callbacks=callbacks_list,
     shuffle=True)
