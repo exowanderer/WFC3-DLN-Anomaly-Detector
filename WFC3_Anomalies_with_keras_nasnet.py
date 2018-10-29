@@ -1,81 +1,104 @@
-# START WITH ARGPARSE TO MINIMIZE IMPORTS with python thingfile.py -h --help
 import argparse
-from multiprocessing import cpu_count
+# from multiprocessing import cpu_count
+from functools import partial
 
-def val_acc_range_type(astr, min=0.0, max=1.0):
-    value = float(astr)
-    if min <= value <= max:
-        return value
-    else:
-        raise argparse.ArgumentTypeError('value not in range %s-%s'%(min,max))
+def in_range(value, min=0, max=1, dtype=float):
+    ivalue = dtype(value)
+    if min <= ivalue <= max:
+        return ivalue
+    
+    raise argparse.ArgumentTypeError("{} is invalid; the `dropout_rate` must be either from [0,1] (inclusive).".format(value))
+    
+def greater_than(value, min=0):
+    ivalue = int(value)
+    if min <= ivalue:
+         return ivalue
+    
+    raise argparse.ArgumentTypeError("{} is invalid; `n_layers` must be either 1, 2, 3, 4, or 5.".format(value))
 
-args = {}
-args["dataset"]       = 'dataset_all'
-args["model"]         = 'rename_me_wfc3_nasnet_model'
-args["labelbin"]      = 'rename_me_lb'
-args["plot"]          = 'rename_me_wfc3_nasnet_model_loss_acc.png'
-args["ncores"]        = cpu_count()-1
-args["niters"]        = 100
-args["l_rate"]        = 1e-3
-args["batch_size"]    = 32
-args["image_size"]    = 100
-args["min_val_acc"]   = 0.65
-args["fine_tune"]     = True
-
-# # pip install --upgrade imutils
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 
-ap.add_argument("-d"  , "--dataset"    , type=str  , required=False, 
-    help="path to input dataset (i.e., directory of images)", default='dataset_all')
-ap.add_argument("-m"  , "--model"      , type=str  , required=False, 
-    help="path to output model"        , default='rename_me_wfc3_nasnet_model')
-ap.add_argument("-l"  , "--labelbin"   , type=str  , required=False, 
-    help="path to output label binarizer"                   , default='rename_me_lb')
-ap.add_argument("-p"  , "--plot"       , type=str  , required=False, 
-    help="path to output accuracy/loss plot"                , default='rename_me_wfc3_nasnet_model_loss_acc.png')
-ap.add_argument("-nc" , "--ncores"     , type=int  , required=False, 
-    help="number of cpu cores to use; default == ALL"       , default=cpu_count())
-ap.add_argument("-ni" , "--niters"     , type=int  , required=False, 
-    help="number of iterations to use; default == 100"      , default=100)
-ap.add_argument("-lr" , "--l_rate"     , type=float, required=False, 
-    help="initial learning rate"       , default=1e-3)
-ap.add_argument("-bs" , "--batch_size" , type=float, required=False, 
-    help="batch_size per iteration"    , default=32)
-ap.add_argument("-is" , "--image_size" , type=int  , required=False, 
-    help="Assuming square images, size of the image"    , default=100)
-ap.add_argument('-mva', '--min_val_acc', type=val_acc_range_type, required=False, 
-    help="Minimum validation accuracy to begin EarlyStopping criterion", 
-    default=0.65)
-ap.add_argument('-ft', '--fine_tune', type=bool, required=False, 
-    help="True: Only fit the top layer; False: Fit all layers"    , default=True)
+ap.add_argument("-td", "--train_data", type=str, required=False, default='train', 
+    help="path to input dataset (i.e., directory of images)")
+ap.add_argument("-vd", "--validation_data", type=str, required=False, default='validation', 
+    help="path to input dataset (i.e., directory of images)")
+ap.add_argument("-m", "--model", type=str, required=False, default='rename_me_wfc3_MeGGNet_model', 
+    help="path to output model")
+ap.add_argument("-l", "--labelbin", type=str, required=False, default='rename_me_lb', 
+    help="path to output label binarizer")
+ap.add_argument("-p", "--plot", type=str, required=False, default="rename_me_wfc3_MeGGNet_model_loss_acc.png", 
+    help="path to output accuracy/loss plot")
+ap.add_argument("-nc", "--ncores", type=int, required=False, default=1, 
+    help="number of cpu cores to use; default == ALL")
+ap.add_argument("-ni", "--niters", type=int, required=False, default=10, 
+    help="number of iterations to use; default == 10")
+ap.add_argument("-lr", "--l_rate", type=float, required=False, default=1e-3, 
+    help="initial learning rate")
+ap.add_argument("-bs", "--batch_size", type=int, required=False, default=32, 
+    help="batch_size per iteration")
+ap.add_argument("-is", "--image_size", type=int, required=False, default=100, 
+    help="batch_size per iteration")
 
-args = vars(ap.parse_args())
+ap.add_argument('-a', '--activation', type=str, required=False, default='elu', 
+    help='Select which activation function to use between each Conv2D layer.')
+ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=1, 
+    help='Select the number of convolutional layers from 1 to 5.')
+ap.add_argument('-d0', '--depth0', type=partial(greater_than, min=1), required=False, default=32, 
+    help='The depth of the first Conv2D layer; subsequent layers are double in depth, and half in width.')
+ap.add_argument('-ks', '--kernel_size', type=partial(greater_than, min=3), required=False, default=5, 
+    help='Select the size of the Conv2D kernel (symmetric).')
+ap.add_argument('-dr0', '--dropout_rate0', type=in_range, required=False, default=0.25, 
+    help='Select the Conv2D layer dropout rate.')
+ap.add_argument('-dr1', '--dropout_rate1', type=in_range, required=False, default=0.50, 
+    help='Select the Top, Dense layer dropout rate.')
+ap.add_argument('-ps', '--pool_size', type=partial(greater_than, min=2), required=False, default=2, 
+    help='The size of the MaxPool2D pool size (symmetric).')
+ap.add_argument('-ss', '--stride_size', type=partial(greater_than, min=2), required=False, default=2, 
+    help='The size of the MaxPool2D stride size (symmetric).')
+ap.add_argument('-b', '--use_bias', type=bool, required=False, default=False, 
+    help='Select whether to activate a bias term for each Conv2D layer (not recomended).')
+ap.add_argument('-zp', '--zero_pad', type=bool, required=False, default=False, 
+    help="Select whether to zero pad between each Conv2D layer (nominally taken care of inside Conv2D(padding='same')).")
+ap.add_argument('-zps', '--zero_pad_size', type=partial(greater_than, min=1), required=False, default=1, 
+    help="Select the kernel size for the zero pad between each Conv2D layer.")
 
+ap.add_argument('-ft', '--fine_tune', type=bool, required=False, default=False, 
+    help="True: Only fit the top layer; False: Fit all layers")
+ap.add_argument('-mva', '--min_val_acc', type=in_range, required=False, default=0.7, 
+    help='The minimum validation accuracy to begin checking for Early Stopping Criteria.')
 
-# This Python 3 environment comes with many helpful analytics libraries installed
-# It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
-# For example, here's several helpful packages to load in 
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
-import keras
-from keras.applications.nasnet import NASNetLarge
-from keras.models import Model
-from keras.layers import Dense, Dropout, Flatten
+try:
+    args = vars(ap.parse_args())
+    inputs_found = True
+except:
+    inputs_found = False
+# initialize the number of epochs to train for, initial learning rate,
+# batch size, and image dimensions
 
-import os
-from tqdm import tqdm
-from sklearn import preprocessing
-from sklearn.model_selection import train_test_split
-import cv2
-# Input data files are available in the "../input/" directory.
-# For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
-''' THIS IS SUPPOSED TO GO INTO A NEW FILE AND *CALL* THE ABOVE CLASS '''
+EPOCHS = args["niters"] if inputs_found else ap['niters'].get_default()
+INIT_LR = args["l_rate"] if inputs_found else ap['l_rate'].get_default()
+BATCH_SIZE = args["batch_size"] if inputs_found else ap['batch_size'].get_default()
+IM_SIZE = args['image_size'] if inputs_found else ap['image_size'].get_default()
+IMAGE_DIMS = (IM_SIZE,IM_SIZE,1)
+
+ACTIVATION = args['activation'] if inputs_found else ap['activation'].get_default()
+N_LAYERS = args['n_layers'] if inputs_found else ap['n_layers'].get_default()
+DEPTH0 = args['depth0'] if inputs_found else ap['depth0'].get_default()
+KERNEL_SIZE = args['kernel_size'] if inputs_found else ap['kernel_size'].get_default()
+DROPOUT_RATE0 = args['dropout_rate0'] if inputs_found else ap['dropout_rate0'].get_default()
+DROPOUT_RATE1 = args['dropout_rate1'] if inputs_found else ap['dropout_rate1'].get_default()
+POOL_SIZE = args['pool_size'] if inputs_found else ap['pool_size'].get_default()
+STRIDE_SIZE = args['stride_size'] if inputs_found else ap['stride_size'].get_default()
+USE_BIAS = args['use_bias'] if inputs_found else ap['use_bias'].get_default()
+ZERO_PAD = args['zero_pad'] if inputs_found else ap['zero_pad'].get_default()
+ZERO_PAD_SIZE = args['zero_pad_size'] if inputs_found else ap['zero_pad_size'].get_default()
 
 from matplotlib import use
 use('Agg')
 
 import cv2
+import keras
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -84,78 +107,93 @@ import random
 
 # import the necessary packages
 from imutils import paths
+
 from keras import backend as K
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing.image import img_to_array
 from sklearn.externals import joblib
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
+from MyBox_O_DNNs.MeGGNet16 import MeGGNet16
 from time import time
 from tqdm import tqdm
 
 from tensorflow import ConfigProto, Session
 
-
-# initialize the number of epochs to train for, initial learning rate,
-# batch size, and image dimensions
-
-DATA_DIR    = args["dataset"] # 'dataset_all'
-EPOCHS      = args["niters"]#100
-INIT_LR     = args["l_rate"]#1e-3
-BS          = args["batch_size"] #32
-BASELINE    = args["min_val_acc"] # 0.65
-N_CORES     = args["ncores"]
-SAVE_NAME   = args["model"]
-LB_SAVENAME = args["labelbin"]
-PLT_SAVENAME= args["plot"]
-IM_SIZE     = args["image_size"] # 100
-FINE_TUNE   = args["fine_tune"] # True
-IMAGE_DIMS  = (IM_SIZE,IM_SIZE,1)
-
 # initialize the data and labels
-data    = []
-labels  = []
+trainX = []
+testX = []
+
+trainY = []
+testY = []
+
+args["train_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/train/"
+args["validation_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/validation/"
+test_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/test/"
 
 # grab the image paths and randomly shuffle them
-print("[INFO] loading images...")
-imagePaths  = sorted(list(paths.list_images(args["dataset"])))
+print("[INFO] loading training images...")
+train_filenames = sorted(list(paths.list_images(args["train_data"])))
+
 random.seed(42)
-random.shuffle(imagePaths)
+random.shuffle(train_filenames)
 
 # loop over the input images
-for imagePath in tqdm(imagePaths, total=len(imagePaths)):
+for imagePath in tqdm(train_filenames, total=len(train_filenames)):
     # load the image, pre-process it, and store it in the data list
     image = cv2.imread(imagePath)
     image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
     image = img_to_array(image)[:,:,:1]
-    data.append(image)
+    trainX.append(image)
     
     # extract the class label from the image path and update the
     # labels list
-    label = imagePath.split(os.path.sep)[-2]
-    labels.append(label)
+    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
+    trainY.append(label)
+
+# grab the image paths and randomly shuffle them
+print("[INFO] loading validation images...")
+validation_filenames = sorted(list(paths.list_images(args["validation_data"])))
+
+random.seed(42)
+random.shuffle(validation_filenames)
+
+# loop over the input images
+for imagePath in tqdm(validation_filenames, total=len(validation_filenames)):
+    # load the image, pre-process it, and store it in the data list
+    image = cv2.imread(imagePath)
+    image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
+    image = img_to_array(image)[:,:,:1]
+    testX.append(image)
+    
+    # extract the class label from the image path and update the
+    # labels list
+    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
+    testY.append(label)
 
 # scale the raw pixel intensities to the range [0, 1]
-data   = np.array(data, dtype="float16") / 255.0
-labels = np.array(labels)
+trainX = np.array(trainX, dtype="float16") / 255.0
+testX = np.array(testX, dtype="float16") / 255.0
+trainY = np.array(trainY)
+testY = np.array(testY)
+print("[INFO] data  matrix: {:.2f}MB".format(trainX.nbytes / (1024 * 1000.0)))
+print("[INFO] data  shape : {}".format(trainX.shape))
+print("[INFO] label shape : {}".format(trainY.shape))
 
-print("[INFO] data  matrix: {}MB".format(data.nbytes // (1024 * 1000)))
-print("[INFO] data  shape : {}".format(data.shape))
-print("[INFO] label shape : {}".format(labels.shape))
-
-# binarize the labels
+# binarize the labels - one hot encoding
 lb     = LabelBinarizer()
-labels = lb.fit_transform(labels)
+trainY = lb.fit_transform(trainY)
+testY = lb.transform(testY)
 
-num_class = len(lb.classes_)
+train_labels_raw = trainY.argmax(axis=1)#np.where(trainY==1)[1]
+test_labels_raw = testY.argmax(axis=1)#np.where(testY==1)[1]
 
 # partition the data into training and testing splits using 80% of
 # the data for training and the remaining 20% for testing
-(trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.2, random_state=42)
-print('trainX.shape:{}\ntestX.shape:{}\ntrainY.shape:{}\ntestY.shape'.format(
-       trainX.shape,    testX.shape,    trainY.shape,    testY.shape))
+# (trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.2, random_state=42)
+print(trainX.shape, testX.shape, trainY.shape, testY.shape)
 
 # construct the image generator for data augmentation
 aug = ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
@@ -168,6 +206,9 @@ aug = ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
 #                                           inter_op_parallelism_threads=args["ncores"])) as sess:
 # with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"])) as sess:
 # K.set_session(sess)
+
+filepath = 'keras_checkpoints/'
+checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 
 tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BS, write_graph=True,
                      write_grads=False, write_images=False, embeddings_freq=0,
@@ -186,17 +227,16 @@ predictions = Dense(num_class, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=predictions)
 
 # First: train only the top layers (which were randomly initialized)
-if FINE_TUNE:
-    for layer in base_model.layers:
-        layer.trainable = False
+if FINE_TUNE: for layer in base_model.layers: layer.trainable = False
 
 model.compile(loss='categorical_crossentropy', 
               optimizer='adam', 
               metrics=['accuracy'])
 
-early_stopping = keras.callbacks.EarlyStopping(monitor='val_acc', patience=3, verbose=1, 
-						baseline=args["min_val_acc"], mode='max')
-callbacks_list = [tensboard]#[early_stopping, tensboard]
+# early_stopping = EarlyStopping(monitor='val_acc', patience=10, verbose=1,
+#                         baseline=args["min_val_acc"], mode='max')
+
+callbacks_list = [tensboard, checkpoints]#, early_stopping]
 print(model.summary())
 
 print("[INFO] training network...")
@@ -216,7 +256,7 @@ joblib.dump(lb, args["labelbin"] + 'joblib.save')
 
 plt.style.use("ggplot")
 plt.figure()
-N = len(H.history["loss'])
+N = len(H.history["loss"])
 plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
 plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
 plt.plot(np.arange(0, N), H.history["acc"], label="train_acc")
@@ -230,10 +270,8 @@ plt.savefig(args["plot"])
 try:
     preds = model.predict(testX, verbose=1)
     
-    sub = pd.DataFrame(preds)
-    # Set column names to those generated by the one-hot encoding earlier
-    # col_names   = lb.classes_#one_hot.columns.values
-    sub.columns = lb.classes_
+    sub = pd.DataFrame(preds, columns=lb.classes_)
+    
     # Insert the column id from the sample_submission at the start of the data frame
     
     # sub.insert(0, 'id', df_test['id'])

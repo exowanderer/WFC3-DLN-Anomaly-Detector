@@ -28,7 +28,7 @@ ap.add_argument("-nc", "--ncores", type=int, required=False, help="number of cpu
 ap.add_argument("-ni", "--niters", type=int, required=False, help="number of iterations to use; default == 10", default=10)
 ap.add_argument("-lr", "--l_rate", type=float, required=False, help="initial learning rate", default=1e-3)
 ap.add_argument("-bs", "--batch_size", type=int, required=False, help="batch_size per iteration", default=32)
-ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_size per iteration", default=256)
+ap.add_argument("-is", "--image_size", type=int, required=False, help="batch_size per iteration", default=100)
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', help='Select which activation function to use between each Conv2D layer.')
 ap.add_argument('-nl', '--n_layers', type=int, choices=range(1,6), required=False, default=1, help='Select the number of convolutional layers from 1 to 5.')
@@ -83,7 +83,7 @@ import random
 from imutils import paths
 
 from keras import backend as K
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing.image import img_to_array
@@ -161,6 +161,9 @@ lb     = LabelBinarizer()
 trainY = lb.fit_transform(trainY)
 testY = lb.transform(testY)
 
+train_labels_raw = trainY.argmax(axis=1)#np.where(trainY==1)[1]
+test_labels_raw = testY.argmax(axis=1)#np.where(testY==1)[1]
+
 # partition the data into training and testing splits using 80% of
 # the data for training and the remaining 20% for testing
 # (trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.2, random_state=42)
@@ -178,14 +181,13 @@ aug = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
 # with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"])) as sess:
 # K.set_session(sess)
 
-
-# args["min_val_acc"] = 0.65
-# early_stopping = keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, mode='max',
-#                                                 verbose=1, baseline=args["min_val_acc"])
+# args["min_val_acc"] = (np.where(train_labels_raw == 0)[0]) / train_labels_raw.shape
+#
+# early_stopping = EarlyStopping(monitor='val_acc', patience=10, mode='max', verbose=1, baseline=args["min_val_acc"])
 
 tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
-                     write_grads=False, write_images=False, embeddings_freq=0,
-                     embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
+                         write_grads=False, write_images=False, embeddings_freq=0,
+                         embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
 
 # testcall = TestCallback((X_test, Y_test))
 
