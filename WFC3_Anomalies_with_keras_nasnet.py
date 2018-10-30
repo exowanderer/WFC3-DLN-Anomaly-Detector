@@ -37,7 +37,7 @@ ap.add_argument("-lr", "--l_rate", type=float, required=False, default=1e-3,
     help="initial learning rate")
 ap.add_argument("-bs", "--batch_size", type=int, required=False, default=32, 
     help="batch_size per iteration")
-ap.add_argument("-is", "--image_size", type=int, required=False, default=100, 
+ap.add_argument("-is", "--image_size", type=int, required=False, default=244, 
     help="batch_size per iteration")
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', 
@@ -80,7 +80,7 @@ EPOCHS = args["niters"] if inputs_found else ap['niters'].get_default()
 INIT_LR = args["l_rate"] if inputs_found else ap['l_rate'].get_default()
 BATCH_SIZE = args["batch_size"] if inputs_found else ap['batch_size'].get_default()
 IM_SIZE = args['image_size'] if inputs_found else ap['image_size'].get_default()
-IMAGE_DIMS = (IM_SIZE,IM_SIZE,1)
+IMAGE_DIMS = (IM_SIZE, IM_SIZE, 3)
 
 ACTIVATION = args['activation'] if inputs_found else ap['activation'].get_default()
 N_LAYERS = args['n_layers'] if inputs_found else ap['n_layers'].get_default()
@@ -97,22 +97,24 @@ ZERO_PAD_SIZE = args['zero_pad_size'] if inputs_found else ap['zero_pad_size'].g
 from matplotlib import use
 use('Agg')
 
-import cv2
+# import cv2
 import keras
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-# import pickle
+
 import random
 
 # import the necessary packages
 from imutils import paths
 
 from keras import backend as K
+from keras import Model
+from keras.layers import Dense, Flatten
 from keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
-from keras.preprocessing.image import ImageDataGenerator
-from keras.preprocessing.image import img_to_array
+from keras.preprocessing import image
+from keras.applications.nasnet import NASNetLarge, preprocess_input
 from sklearn.externals import joblib
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
@@ -129,63 +131,87 @@ testX = []
 trainY = []
 testY = []
 
-args["train_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/train/"
-args["validation_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/validation/"
-test_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/test/"
+def load_data_from_file(filenames, img_size=IM_SIZE):
+    
+    features = []
+    labels = []
+    
+    # loop over the input images
+    for imagePath in tqdm(filenames, total=len(filenames)):
+        img = image.load_img(imagePath, target_size=(img_size, img_size))
+        img = image.img_to_array(img)#[:,:,:1]
+        img = np.expand_dims(img, axis=0)
+        img = preprocess_input(img)
+        features.append(img[0])
+        
+        # extract the class label from the image path and update the
+        # labels list
+        label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
+        labels.append(label)
+    
+    return features, labels
+
+# # loop over the input images
+# for imagePath in tqdm(train_filenames, total=len(train_filenames)):
+#     # load the image, pre-process it, and store it in the data list
+#     # image = cv2.imread(imagePath)
+#     # image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
+#     img = image.load_img(imagePath, target_size=(IM_SIZE, IM_SIZE))
+#     img = image.img_to_array(img)#[:,:,:1]
+#     img = np.expand_dims(img, axis=0)
+#     img = preprocess_input(img)
+#     trainX.append(img)
+#
+#     # extract the class label from the image path and update the
+#     # labels list
+#     label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
+#     trainY.append(label)
+
+
+
+args["train_data"] = os.environ['HOME'] + '/Research/QuickLookDLN/dataset_all/'
+# args["train_data"] = os.environ['HOME'] + r"/Research/HST_Public_DLN/Data/train/"
+# args["validation_data"] = os.environ['HOME'] + r"/Research/HST_Public_DLN/Data/validation/"
+# test_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/test/"
 
 # grab the image paths and randomly shuffle them
 print("[INFO] loading training images...")
 train_filenames = sorted(list(paths.list_images(args["train_data"])))
 
+# # grab the image paths and randomly shuffle them
+# print("[INFO] loading validation images...")
+# validation_filenames = sorted(list(paths.list_images(args["validation_data
+
 random.seed(42)
 random.shuffle(train_filenames)
+# random.shuffle(validation_filenames)
 
-# loop over the input images
-for imagePath in tqdm(train_filenames, total=len(train_filenames)):
-    # load the image, pre-process it, and store it in the data list
-    image = cv2.imread(imagePath)
-    image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
-    image = img_to_array(image)[:,:,:1]
-    trainX.append(image)
-    
-    # extract the class label from the image path and update the
-    # labels list
-    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
-    trainY.append(label)
+dataX, dataY = load_data_from_file(train_filenames[:10], img_size=IM_SIZE)
+# testX, testY = load_data_from_file(validation_filenames[:10], img_size=IM_SIZE)
 
-# grab the image paths and randomly shuffle them
-print("[INFO] loading validation images...")
-validation_filenames = sorted(list(paths.list_images(args["validation_data"])))
+idx_train, idx_test = train_test_split(np.arange(len(dataY)), test_size=0.2)
 
-random.seed(42)
-random.shuffle(validation_filenames)
+dataX = np.array(dataX, dtype="float16") / 255.0
+# testX = np.array(testX, dtype="float16") / 255.0
+dataY = np.array(dataY)
+# testY = np.array(testY)
 
-# loop over the input images
-for imagePath in tqdm(validation_filenames, total=len(validation_filenames)):
-    # load the image, pre-process it, and store it in the data list
-    image = cv2.imread(imagePath)
-    image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
-    image = img_to_array(image)[:,:,:1]
-    testX.append(image)
-    
-    # extract the class label from the image path and update the
-    # labels list
-    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
-    testY.append(label)
+trainX = dataX[idx_train]
+testX = dataX[idx_test]
 
-# scale the raw pixel intensities to the range [0, 1]
-trainX = np.array(trainX, dtype="float16") / 255.0
-testX = np.array(testX, dtype="float16") / 255.0
-trainY = np.array(trainY)
-testY = np.array(testY)
+trainY = dataY[idx_train]
+testY = dataY[idx_test]
+
 print("[INFO] data  matrix: {:.2f}MB".format(trainX.nbytes / (1024 * 1000.0)))
 print("[INFO] data  shape : {}".format(trainX.shape))
 print("[INFO] label shape : {}".format(trainY.shape))
 
 # binarize the labels - one hot encoding
-lb     = LabelBinarizer()
+lb = LabelBinarizer()
 trainY = lb.fit_transform(trainY)
 testY = lb.transform(testY)
+
+num_class = len(lb.classes_)
 
 train_labels_raw = trainY.argmax(axis=1)#np.where(trainY==1)[1]
 test_labels_raw = testY.argmax(axis=1)#np.where(testY==1)[1]
@@ -193,10 +219,10 @@ test_labels_raw = testY.argmax(axis=1)#np.where(testY==1)[1]
 # partition the data into training and testing splits using 80% of
 # the data for training and the remaining 20% for testing
 # (trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.2, random_state=42)
-print(trainX.shape, testX.shape, trainY.shape, testY.shape)
+# print(trainX.shape, testX.shape, trainY.shape, testY.shape)
 
 # construct the image generator for data augmentation
-aug = ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
+aug = image.ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
     height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
     horizontal_flip=True, vertical_flip=True, fill_mode="nearest")
 
@@ -210,13 +236,17 @@ aug = ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
 filepath = 'keras_checkpoints/'
 checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 
-tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BS, write_graph=True,
+tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
                      write_grads=False, write_images=False, embeddings_freq=0,
                      embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
 
 # Create the base pre-trained model
 # Can't download weights in the kernel
-base_model = NASNetLarge(weights = None, include_top=False, input_shape=(IM_SIZE, IM_SIZE, 1))
+# input_tensor = Input(shape=IMAGE_DIMS)  # this assumes K.image_data_format() == 'channels_last'
+
+base_model = NASNetLarge(input_shape=trainX[0].shape, include_top=False, weights='imagenet')#, input_tensor=input_tensor)#, pooling=None)
+
+# base_model = NASNetLarge(input_shape=(IM_SIZE, IM_SIZE, 1), include_top=False, weights = None)
 
 # Add a new top layer
 x = base_model.output
@@ -227,7 +257,8 @@ predictions = Dense(num_class, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=predictions)
 
 # First: train only the top layers (which were randomly initialized)
-if FINE_TUNE: for layer in base_model.layers: layer.trainable = False
+if FINE_TUNE: 
+    for layer in base_model.layers: layer.trainable = False
 
 model.compile(loss='categorical_crossentropy', 
               optimizer='adam', 
@@ -241,9 +272,10 @@ print(model.summary())
 
 print("[INFO] training network...")
 start = time()
-H = model.fit_generator(aug.flow(trainX, trainY, batch_size=BS), epochs=EPOCHS, verbose=1, # batch_size=BS, 
-          callbacks=callbacks_list, validation_data=(testX, testY), steps_per_epoch=len(trainX) // BS,
+H = model.fit_generator(aug.flow(trainX, trainY, batch_size=BATCH_SIZE), epochs=EPOCHS, verbose=1, 
+          callbacks=callbacks_list, validation_data=(testX, testY), steps_per_epoch=len(trainX) // BATCH_SIZE,
           shuffle=True)
+
 print('\n\n *** Full TensorFlow Training Took {} minutes'.format((time()-start)//60))
 
 # save the model to disk
