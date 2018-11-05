@@ -37,7 +37,7 @@ ap.add_argument("-lr", "--l_rate", type=float, required=False, default=1e-3,
     help="initial learning rate")
 ap.add_argument("-bs", "--batch_size", type=int, required=False, default=32, 
     help="batch_size per iteration")
-ap.add_argument("-is", "--image_size", type=int, required=False, default=100, 
+ap.add_argument("-is", "--image_size", type=int, required=False, default=244, 
     help="batch_size per iteration")
 
 ap.add_argument('-a', '--activation', type=str, required=False, default='elu', 
