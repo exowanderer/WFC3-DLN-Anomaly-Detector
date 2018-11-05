@@ -150,9 +150,9 @@ dataY = []
 
 data_filenames_strat = {}
 for fname in data_filenames:
-	class_label = os.path.dirname(imagePath).split(os.path.sep)[-1]
-	if class_label not in data_filenames_strat.keys():
-		data_filenames_strat[class_label] = fname
+    class_label = os.path.dirname(fname).split(os.path.sep)[-1]
+    if class_label not in data_filenames_strat.keys():
+        data_filenames_strat[class_label] = fname
 
 # loop over the input images
 for imagePath in tqdm(data_filenames_strat.values(), total=len(data_filenames)):
@@ -161,10 +161,10 @@ for imagePath in tqdm(data_filenames_strat.values(), total=len(data_filenames)):
     image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
     image = img_to_array(image)[:,:,:1]
     dataX.append(image)
-    
+
     # extract the class label from the image path and update the
     # labels list
-	label = os.path.dirname(imagePath).split(os.path.sep)[-1]
+    label = os.path.dirname(imagePath).split(os.path.sep)[-1]
     # label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
     dataY.append(label)
 
@@ -247,7 +247,7 @@ print(model.summary())
 print("[INFO] training network...")
 start = time()
 H = model.fit_generator(aug.flow(trainX, trainY, batch_size=BATCH_SIZE), epochs=EPOCHS, verbose=1,  
-          callbacks=callbacks_list, validation_data=(testX, testY), steps_per_epoch=len(trainX) // BATCH_SIZE,
+          validation_data=(testX, testY), steps_per_epoch=len(trainX) // BATCH_SIZE,#callbacks=callbacks_list, 
           shuffle=True)
 print('\n\n *** Full TensorFlow Training Took {} minutes'.format((time()-start)//60))
 
