@@ -112,7 +112,7 @@ from imutils import paths
 from keras import backend as K
 from keras import Model
 from keras.applications import NASNetLarge
-from keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
+# from keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from keras.layers import Flatten, Dense
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
@@ -241,7 +241,7 @@ model.compile(loss='categorical_crossentropy',
 # early_stopping = EarlyStopping(monitor='val_acc', patience=10, verbose=1,
 #                         baseline=args["min_val_acc"], mode='max')
 
-callbacks_list = [tensboard, checkpoints]#, early_stopping]
+# callbacks_list = [tensboard, checkpoints]#, early_stopping]
 print(model.summary())
 
 print("[INFO] training network...")
