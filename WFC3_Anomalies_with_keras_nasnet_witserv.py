@@ -151,8 +151,9 @@ dataY = []
 data_filenames_strat = {}
 for fname in data_filenames:
     class_label = os.path.dirname(fname).split(os.path.sep)[-1]
-    if class_label not in data_filenames_strat.keys():
-        data_filenames_strat[class_label] = fname
+    data_filenames_strat[class_label] = []
+    if class_label not in data_filenames_strat.keys() and len(data_filenames_strat[class_label]) < 3:
+        data_filenames_strat[class_label].append(fname)
 
 # loop over the input images
 for imagePath in tqdm(data_filenames_strat.values(), total=len(data_filenames)):
