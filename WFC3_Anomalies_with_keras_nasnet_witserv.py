@@ -156,7 +156,7 @@ for fname in data_filenames:
         data_filenames_strat[class_label].append(fname)
 
 
-data_filenames_strat = np.concatenate(list(dict_.values()))
+data_filenames_strat = np.concatenate(list(data_filenames_strat.values()))
 
 # loop over the input images
 for imagePath in tqdm(data_filenames_strat, total=len(data_filenames)):
