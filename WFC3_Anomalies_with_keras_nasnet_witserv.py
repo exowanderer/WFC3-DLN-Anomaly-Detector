@@ -147,7 +147,8 @@ random.shuffle(data_filenames)
 
 dataX = []
 dataY = []
-
+'''
+# Used for debugging -- creates a list of filenames with 3 per class
 data_filenames_strat = {}
 for fname in data_filenames:
     class_label = os.path.dirname(fname).split(os.path.sep)[-1]
@@ -155,11 +156,11 @@ for fname in data_filenames:
     if len(data_filenames_strat[class_label]) < 3:
         data_filenames_strat[class_label].append(fname)
 
-
-data_filenames_strat = np.concatenate(list(data_filenames_strat.values()))
+data_filenames = np.concatenate(list(data_filenames_strat.values()))
+'''
 
 # loop over the input images
-for imagePath in tqdm(data_filenames_strat, total=len(data_filenames)):
+for imagePath in tqdm(data_filenames, total=len(data_filenames)):
     # load the image, pre-process it, and store it in the data list
     image = cv2.imread(imagePath)
     image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
