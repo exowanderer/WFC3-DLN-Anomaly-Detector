@@ -211,13 +211,13 @@ aug = ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
 # with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"])) as sess:
 # K.set_session(sess)
 
-filepath = 'keras_checkpoints/'
-checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+# filepath = 'keras_checkpoints/'
+# checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 
-tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
-                     write_grads=False, write_images=False, embeddings_freq=0,
-                     embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
-
+# tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
+#                      write_grads=False, write_images=False, embeddings_freq=0,
+#                      embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
+#
 # Create the base pre-trained model
 # Can't download weights in the kernel
 base_model = NASNetLarge(weights = None, include_top=False, input_shape=(IM_SIZE, IM_SIZE, 1))
