@@ -116,7 +116,7 @@ from keras.layers import Dense, Flatten
 from keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
 from keras.preprocessing import image
-from keras.applications.nasnet import NASNetLarge, preprocess_input
+from keras_applications.nasnet import  NASNetLarge, preprocess_input
 from sklearn.externals import joblib
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
