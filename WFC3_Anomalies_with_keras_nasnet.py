@@ -183,7 +183,7 @@ def load_data_from_file_mp(filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verb
     features = []
     labels = []
     for feature, label in outputs:
-        features.append(feat)
+        features.append(feature)
         labels.append(label)
 
     return features, labels# np.transpose(outputs) # 
