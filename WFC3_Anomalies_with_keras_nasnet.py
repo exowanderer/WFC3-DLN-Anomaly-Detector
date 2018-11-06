@@ -187,7 +187,7 @@ datadir_base = '/Research/HST_Public_DLN/Data/'
 
 args["train_data"] = os.environ['HOME'] + datadir_base + r"train/"
 args["validation_data"] = os.environ['HOME'] + datadir_base + r"validation/"
-args["test_data"] =  = os.environ['HOME'] + datadir_base + r"test/"
+args["test_data"] = os.environ['HOME'] + datadir_base + r"test/"
 
 # grab the image paths and randomly shuffle them
 print("[INFO] loading training images...")
