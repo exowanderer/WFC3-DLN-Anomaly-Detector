@@ -178,15 +178,15 @@ def load_data_from_file_mp(filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verb
     with Parallel(n_jobs=n_jobs, verbose=verbose) as parallel:
         outputs = parallel(delayed(partial_load_one)(fname) for fname in filenames)
     
-    # print(len(outputs), len(outputs[0]), len(outputs[1]))
-    
-    # # features = []
-    # # labels = []
-    # for feature, label in outputs:
-    #     features.append(feat)
-    #     labels.append(label)
-    
-    return np.transpose(outputs) # features, labels
+    print(len(outputs), len(outputs[0]), len(outputs[1]))
+
+    features = []
+    labels = []
+    for feature, label in outputs:
+        features.append(feat)
+        labels.append(label)
+
+    return features, labels# np.transpose(outputs) # 
 
 datadir_base = '/Research/HST_Public_DLN/Data/'
 
