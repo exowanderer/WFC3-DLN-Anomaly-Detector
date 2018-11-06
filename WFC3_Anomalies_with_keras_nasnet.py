@@ -158,7 +158,7 @@ def load_one(filename, img_size=IM_SIZE):
     img = preprocess_input(img)
     
     # extract the class label from the image path and update the labels list
-    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
+    label = filename.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
     
     return img[0], label
 
