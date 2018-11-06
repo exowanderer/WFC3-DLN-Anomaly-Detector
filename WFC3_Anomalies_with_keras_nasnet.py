@@ -180,13 +180,13 @@ def load_data_from_file_mp(filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verb
     
     print(len(outputs), len(outputs[0]), len(outputs[1]))
     
-    features = []
-    labels = []
-    for feature, label in outputs:
-        features.append(feat)
-        labels.append(label)
+    # # features = []
+    # # labels = []
+    # for feature, label in outputs:
+    #     features.append(feat)
+    #     labels.append(label)
     
-    return features, labels
+    return outputs # features, labels
 
 datadir_base = '/Research/HST_Public_DLN/Data/'
 
