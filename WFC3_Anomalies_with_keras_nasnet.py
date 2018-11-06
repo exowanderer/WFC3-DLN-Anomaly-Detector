@@ -157,7 +157,7 @@ def load_one(filename, img_size=IM_SIZE):
     img = image.load_img(filename, target_size=(img_size, img_size))
     img = image.img_to_array(img)#[:,:,:1]
     img = np.expand_dims(img, axis=0)
-    print(preprocess_input.shape)
+    print(img.shape)
     img = preprocess_input(img)
     
     # extract the class label from the image path and update the labels list
