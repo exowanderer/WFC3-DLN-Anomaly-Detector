@@ -29,7 +29,7 @@ ap.add_argument("-l", "--labelbin", type=str, required=False, default='rename_me
     help="path to output label binarizer")
 ap.add_argument("-p", "--plot", type=str, required=False, default="rename_me_wfc3_MeGGNet_model_loss_acc.png", 
     help="path to output accuracy/loss plot")
-ap.add_argument("-nc", "--ncores", type=int, required=False, default=1, 
+ap.add_argument("-nc", "--ncores", type=int, required=False, default=cpu_count(), 
     help="number of cpu cores to use; default == ALL")
 ap.add_argument("-ni", "--niters", type=int, required=False, default=10, 
     help="number of iterations to use; default == 10")
@@ -180,6 +180,8 @@ def load_data_from_file_mp(filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verb
     
     print(len(outputs), len(outputs[0]), len(outputs[1]))
     
+    features = []
+    labels = []
     for feature, label in outputs:
         features.append(feat)
         labels.append(label)
@@ -204,8 +206,8 @@ random.seed(42)
 random.shuffle(train_filenames)
 random.shuffle(validation_filenames)
 
-trainX, trainY = load_data_from_file_mp(train_filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verbose=True)
-testX, testY = load_data_from_file_mp(validation_filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verbose=True)
+trainX, trainY = load_data_from_file_mp(train_filenames, img_size=IM_SIZE, n_jobs=args['ncores'], verbose=True)
+testX, testY = load_data_from_file_mp(validation_filenames, img_size=IM_SIZE, n_jobs=args['ncores'], verbose=True)
 
 trainX = np.array(trainX, dtype="float16") / 255.0
 testX = np.array(testX, dtype="float16") / 255.0
@@ -243,13 +245,6 @@ test_labels_raw = testY.argmax(axis=1)#np.where(testY==1)[1]
 aug = image.ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
     height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
     horizontal_flip=True, vertical_flip=True, fill_mode="nearest")
-
-# initialize the model
-# K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=32, inter_op_parallelism_threads=32)))
-# with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"], 
-#                                           inter_op_parallelism_threads=args["ncores"])) as sess:
-# with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"])) as sess:
-# K.set_session(sess)
 
 filepath = 'keras_checkpoints/'
 checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
