@@ -167,8 +167,11 @@ def load_data_from_file_mp(filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verb
     from functools import partial
     from joblib import Parallel, delayed
     
-    features = []
-    labels = []
+    # features = []
+    # labels = []
+    #
+    
+    print("[INFO] Found {} files to open.".format(len(filenames)))
     
     partial_load_one = partial(load_one, img_size=IM_SIZE)
     
@@ -201,21 +204,21 @@ random.seed(42)
 random.shuffle(train_filenames)
 random.shuffle(validation_filenames)
 
-dataX, dataY = load_data_from_file_mp(train_filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verbose=True)
-testX, testY = load_data_from_file_mp(validation_filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verbose=True)
+trainX, trainY = load_data_from_file_mp(train_filenames, img_size=IM_SIZE, n_jobs=1, verbose=True)
+testX, testY = load_data_from_file_mp(validation_filenames, img_size=IM_SIZE, n_jobs=1, verbose=True)
 
-idx_train, idx_test = train_test_split(np.arange(len(dataY)), test_size=0.2)
-
-dataX = np.array(dataX, dtype="float16") / 255.0
+trainX = np.array(trainX, dtype="float16") / 255.0
 testX = np.array(testX, dtype="float16") / 255.0
-dataY = np.array(dataY)
+trainY = np.array(trainY)
 testY = np.array(testY)
 
-trainX = dataX[idx_train]
-testX = dataX[idx_test]
-
-trainY = dataY[idx_train]
-testY = dataY[idx_test]
+# idx_train, idx_test = train_test_split(np.arange(len(dataY)), test_size=0.2)
+# 
+# trainX = dataX[idx_train]
+# testX = dataX[idx_test]
+#
+# trainY = dataY[idx_train]
+# testY = dataY[idx_test]
 
 print("[INFO] data  matrix: {:.2f}MB".format(trainX.nbytes / (1024 * 1000.0)))
 print("[INFO] data  shape : {}".format(trainX.shape))
