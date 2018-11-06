@@ -108,6 +108,8 @@ import random
 # import the necessary packages
 from imutils import paths
 
+import keras
+
 from keras import backend as K
 from keras import Model
 from keras.layers import Dense, Flatten
