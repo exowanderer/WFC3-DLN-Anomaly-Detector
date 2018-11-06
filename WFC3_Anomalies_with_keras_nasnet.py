@@ -208,7 +208,7 @@ validation_filenames = list(paths.list_images(args["validation_data"]))
 random.seed(42)
 random.shuffle(train_filenames)
 random.shuffle(validation_filenames)
-
+'''
 # Used for debugging -- creates a list of filenames with 3 per class
 data_filenames_strat = {}
 for fname in train_filenames:
@@ -219,7 +219,6 @@ for fname in train_filenames:
 
 train_filenames = np.concatenate(list(data_filenames_strat.values()))
 
-
 data_filenames_strat = {}
 for fname in validation_filenames:
     class_label = os.path.dirname(fname).split(os.path.sep)[-1]
@@ -228,7 +227,7 @@ for fname in validation_filenames:
         data_filenames_strat[class_label].append(fname)
 
 validation_filenames = np.concatenate(list(data_filenames_strat.values()))
-
+'''
 trainX, trainY = load_data_from_file(train_filenames, img_size=IM_SIZE)#, n_jobs=args['ncores'], verbose=True)
 testX, testY = load_data_from_file(validation_filenames, img_size=IM_SIZE)#, n_jobs=args['ncores'], verbose=True)
 
