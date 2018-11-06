@@ -1,5 +1,5 @@
 import argparse
-# from multiprocessing import cpu_count
+from multiprocessing import cpu_count
 from functools import partial
 
 def in_range(value, min=0, max=1, dtype=float):
