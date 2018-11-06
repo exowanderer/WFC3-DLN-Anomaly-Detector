@@ -216,6 +216,7 @@ for fname in train_filenames:
 
 train_filenames = np.concatenate(list(data_filenames_strat.values()))
 
+
 data_filenames_strat = {}
 for fname in validation_filenames:
     class_label = os.path.dirname(fname).split(os.path.sep)[-1]
