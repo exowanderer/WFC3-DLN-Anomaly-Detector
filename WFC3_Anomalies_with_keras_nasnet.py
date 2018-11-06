@@ -204,8 +204,8 @@ random.seed(42)
 random.shuffle(train_filenames)
 random.shuffle(validation_filenames)
 
-trainX, trainY = load_data_from_file_mp(train_filenames, img_size=IM_SIZE, n_jobs=1, verbose=True)
-testX, testY = load_data_from_file_mp(validation_filenames, img_size=IM_SIZE, n_jobs=1, verbose=True)
+trainX, trainY = load_data_from_file_mp(train_filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verbose=True)
+testX, testY = load_data_from_file_mp(validation_filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verbose=True)
 
 trainX = np.array(trainX, dtype="float16") / 255.0
 testX = np.array(testX, dtype="float16") / 255.0
