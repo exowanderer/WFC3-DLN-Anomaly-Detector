@@ -126,18 +126,8 @@ from tqdm import tqdm
 
 from tensorflow import ConfigProto, Session
 
-# initialize the data and labels
-# trainX = []
-# testX = []
-#
-# trainY = []
-# testY = []
-
-# args["train_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/train/"
-# args["validation_data"] = r"/home/ubuntu/Research/HST_Public_DLN/Data/validation/"
-# test_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/test/"
-
 args["train_data"] = os.environ['HOME'] + r"/Research/QuickLookDLN/dataset_all/"
+
 # grab the image paths and randomly shuffle them
 print("[INFO] loading training images...")
 data_filenames = sorted(list(paths.list_images(args["train_data"])))
@@ -145,8 +135,6 @@ data_filenames = sorted(list(paths.list_images(args["train_data"])))
 random.seed(42)
 random.shuffle(data_filenames)
 
-dataX = []
-dataY = []
 '''
 # Used for debugging -- creates a list of filenames with 3 per class
 data_filenames_strat = {}
@@ -159,6 +147,9 @@ for fname in data_filenames:
 data_filenames = np.concatenate(list(data_filenames_strat.values()))
 '''
 
+dataX = []
+dataY = []
+
 # loop over the input images
 for imagePath in tqdm(data_filenames, total=len(data_filenames)):
     # load the image, pre-process it, and store it in the data list
@@ -167,8 +158,7 @@ for imagePath in tqdm(data_filenames, total=len(data_filenames)):
     image = img_to_array(image)[:,:,:1]
     dataX.append(image)
 
-    # extract the class label from the image path and update the
-    # labels list
+    # extract the class label from the image path and update the labels list
     label = os.path.dirname(imagePath).split(os.path.sep)[-1]
     # label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
     dataY.append(label)
@@ -210,18 +200,12 @@ aug = ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
     horizontal_flip=True, vertical_flip=True, fill_mode="nearest")
 
 # initialize the model
-# K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=32, inter_op_parallelism_threads=32)))
-# with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"], 
-#                                           inter_op_parallelism_threads=args["ncores"])) as sess:
-# with K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=args["ncores"])) as sess:
-# K.set_session(sess)
+filepath = 'keras_checkpoints/'
+checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 
-# filepath = 'keras_checkpoints/'
-# checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
-
-# tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
-#                      write_grads=False, write_images=False, embeddings_freq=0,
-#                      embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
+tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
+                     write_grads=False, write_images=False, embeddings_freq=0,
+                     embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
 #
 # Create the base pre-trained model
 # Can't download weights in the kernel
@@ -230,6 +214,7 @@ base_model = NASNetLarge(weights = None, include_top=False, input_shape=(IM_SIZE
 # Add a new top layer
 x = base_model.output
 x = Flatten()(x)
+
 predictions = Dense(num_class, activation='softmax')(x)
 
 # This is the model we will train

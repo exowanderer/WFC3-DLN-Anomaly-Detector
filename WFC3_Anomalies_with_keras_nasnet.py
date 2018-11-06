@@ -151,50 +151,65 @@ def load_data_from_file(filenames, img_size=IM_SIZE):
     
     return features, labels
 
-# # loop over the input images
-# for imagePath in tqdm(train_filenames, total=len(train_filenames)):
-#     # load the image, pre-process it, and store it in the data list
-#     # image = cv2.imread(imagePath)
-#     # image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
-#     img = image.load_img(imagePath, target_size=(IM_SIZE, IM_SIZE))
-#     img = image.img_to_array(img)#[:,:,:1]
-#     img = np.expand_dims(img, axis=0)
-#     img = preprocess_input(img)
-#     trainX.append(img)
-#
-#     # extract the class label from the image path and update the
-#     # labels list
-#     label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
-#     trainY.append(label)
+def load_one(filename, img_size=IM_SIZE):
+    img = image.load_img(filename, target_size=(img_size, img_size))
+    img = image.img_to_array(img)#[:,:,:1]
+    img = np.expand_dims(img, axis=0)
+    img = preprocess_input(img)
+    
+    # extract the class label from the image path and update the labels list
+    label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
+    
+    return img[0], label
 
+def load_data_from_file_mp(filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verbose=True):
+    
+    from functools import partial
+    from joblib import Parallel, delayed
+    
+    features = []
+    labels = []
+    
+    partial_load_one = partial(load_one, img_size=IM_SIZE)
+    
+    with Parallel(n_jobs=n_jobs, verbose=verbose) as parallel:
+        outputs = parallel(delayed(partial_load_one)(fname) for fname in filenames)
+    
+    print(len(outputs), len(outputs[0]), len(outputs[1]))
+    
+    for feature, label in outputs:
+        features.append(feat)
+        labels.append(label)
+    
+    return features, labels
 
+datadir_base = '/Research/HST_Public_DLN/Data/'
 
-args["train_data"] = os.environ['HOME'] + '/Research/QuickLookDLN/dataset_all/'
-# args["train_data"] = os.environ['HOME'] + r"/Research/HST_Public_DLN/Data/train/"
-# args["validation_data"] = os.environ['HOME'] + r"/Research/HST_Public_DLN/Data/validation/"
-# test_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/test/"
+args["train_data"] = os.environ['HOME'] + datadir_base + r"train/"
+args["validation_data"] = os.environ['HOME'] + datadir_base + r"validation/"
+args["test_data"] =  = os.environ['HOME'] + datadir_base + r"test/"
 
 # grab the image paths and randomly shuffle them
 print("[INFO] loading training images...")
-train_filenames = sorted(list(paths.list_images(args["train_data"])))
+train_filenames = list(paths.list_images(args["train_data"]))
 
 # # grab the image paths and randomly shuffle them
-# print("[INFO] loading validation images...")
-# validation_filenames = sorted(list(paths.list_images(args["validation_data
+print("[INFO] loading validation images...")
+validation_filenames = list(paths.list_images(args["validation_data"]))
 
 random.seed(42)
 random.shuffle(train_filenames)
-# random.shuffle(validation_filenames)
+random.shuffle(validation_filenames)
 
-dataX, dataY = load_data_from_file(train_filenames[:10], img_size=IM_SIZE)
-# testX, testY = load_data_from_file(validation_filenames[:10], img_size=IM_SIZE)
+dataX, dataY = load_data_from_file_mp(train_filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verbose=True)
+testX, testY = load_data_from_file_mp(validation_filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verbose=True)
 
 idx_train, idx_test = train_test_split(np.arange(len(dataY)), test_size=0.2)
 
 dataX = np.array(dataX, dtype="float16") / 255.0
-# testX = np.array(testX, dtype="float16") / 255.0
+testX = np.array(testX, dtype="float16") / 255.0
 dataY = np.array(dataY)
-# testY = np.array(testY)
+testY = np.array(testY)
 
 trainX = dataX[idx_train]
 testX = dataX[idx_test]
@@ -245,8 +260,6 @@ tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_f
 # input_tensor = Input(shape=IMAGE_DIMS)  # this assumes K.image_data_format() == 'channels_last'
 
 base_model = NASNetLarge(input_shape=trainX[0].shape, include_top=False, weights='imagenet')#, input_tensor=input_tensor)#, pooling=None)
-
-# base_model = NASNetLarge(input_shape=(IM_SIZE, IM_SIZE, 1), include_top=False, weights = None)
 
 # Add a new top layer
 x = base_model.output
