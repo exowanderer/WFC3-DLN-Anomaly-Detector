@@ -229,8 +229,8 @@ for fname in validation_filenames:
 
 validation_filenames = np.concatenate(list(data_filenames_strat.values()))
 
-trainX, trainY = load_data_from_file_mp(train_filenames, img_size=IM_SIZE, n_jobs=args['ncores'], verbose=True)
-testX, testY = load_data_from_file_mp(validation_filenames, img_size=IM_SIZE, n_jobs=args['ncores'], verbose=True)
+trainX, trainY = load_data_from_file(train_filenames, img_size=IM_SIZE)#, n_jobs=args['ncores'], verbose=True)
+testX, testY = load_data_from_file(validation_filenames, img_size=IM_SIZE)#, n_jobs=args['ncores'], verbose=True)
 
 trainX = np.array(trainX, dtype="float16") / 255.0
 testX = np.array(testX, dtype="float16") / 255.0
