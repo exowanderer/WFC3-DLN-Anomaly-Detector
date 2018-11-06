@@ -178,7 +178,7 @@ def load_data_from_file_mp(filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verb
     with Parallel(n_jobs=n_jobs, verbose=verbose) as parallel:
         outputs = parallel(delayed(partial_load_one)(fname) for fname in filenames)
     
-    print(len(outputs), len(outputs[0]), len(outputs[1]))
+    # print(len(outputs), len(outputs[0]), len(outputs[1]))
     
     # # features = []
     # # labels = []
@@ -205,6 +205,25 @@ validation_filenames = list(paths.list_images(args["validation_data"]))
 random.seed(42)
 random.shuffle(train_filenames)
 random.shuffle(validation_filenames)
+
+# Used for debugging -- creates a list of filenames with 3 per class
+data_filenames_strat = {}
+for fname in train_filenames:
+    class_label = os.path.dirname(fname).split(os.path.sep)[-1]
+    if class_label not in data_filenames_strat.keys(): data_filenames_strat[class_label] = []
+    if len(data_filenames_strat[class_label]) < 3:
+        data_filenames_strat[class_label].append(fname)
+
+train_filenames = np.concatenate(list(data_filenames_strat.values()))
+
+data_filenames_strat = {}
+for fname in validation_filenames:
+    class_label = os.path.dirname(fname).split(os.path.sep)[-1]
+    if class_label not in data_filenames_strat.keys(): data_filenames_strat[class_label] = []
+    if len(data_filenames_strat[class_label]) < 3:
+        data_filenames_strat[class_label].append(fname)
+
+validation_filenames = np.concatenate(list(data_filenames_strat.values()))
 
 trainX, trainY = load_data_from_file_mp(train_filenames, img_size=IM_SIZE, n_jobs=args['ncores'], verbose=True)
 testX, testY = load_data_from_file_mp(validation_filenames, img_size=IM_SIZE, n_jobs=args['ncores'], verbose=True)
