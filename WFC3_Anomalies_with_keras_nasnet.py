@@ -108,8 +108,6 @@ import random
 # import the necessary packages
 from imutils import paths
 
-import keras
-
 from keras import backend as K
 from keras import Model
 from keras.layers import Dense, Flatten
@@ -120,18 +118,18 @@ from keras_applications.nasnet import  NASNetLarge, preprocess_input
 from sklearn.externals import joblib
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
-from MyBox_O_DNNs.MeGGNet16 import MeGGNet16
+# from MyBox_O_DNNs.MeGGNet16 import MeGGNet16
 from time import time
 from tqdm import tqdm
 
-from tensorflow import ConfigProto, Session
+# from tensorflow import ConfigProto, Session
 
-# initialize the data and labels
-trainX = []
-testX = []
-
-trainY = []
-testY = []
+# # initialize the data and labels
+# trainX = []
+# testX = []
+#
+# trainY = []
+# testY = []
 
 def load_data_from_file(filenames, img_size=IM_SIZE):
     
@@ -157,7 +155,6 @@ def load_one(filename, img_size=IM_SIZE):
     img = image.load_img(filename, target_size=(img_size, img_size))
     img = image.img_to_array(img)[:,:,:1]
     img = np.expand_dims(img, axis=0)
-    print(img.shape)
     img = preprocess_input(img)
     
     # extract the class label from the image path and update the labels list
@@ -170,10 +167,6 @@ def load_data_from_file_mp(filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verb
     from functools import partial
     from joblib import Parallel, delayed
     
-    # features = []
-    # labels = []
-    #
-    
     print("[INFO] Found {} files to open.".format(len(filenames)))
     
     partial_load_one = partial(load_one, img_size=IM_SIZE)
@@ -182,13 +175,13 @@ def load_data_from_file_mp(filenames, img_size=IM_SIZE, n_jobs=cpu_count(), verb
         outputs = parallel(delayed(partial_load_one)(fname) for fname in filenames)
     
     print(len(outputs), len(outputs[0]), len(outputs[1]))
-
+    
     features = []
     labels = []
     for feature, label in outputs:
         features.append(feature)
         labels.append(label)
-
+    
     return features, labels# np.transpose(outputs) # 
 
 datadir_base = '/Research/HST_Public_DLN/Data/'
@@ -290,8 +283,8 @@ predictions = Dense(num_class, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=predictions)
 
 # First: train only the top layers (which were randomly initialized)
-if FINE_TUNE: 
-    for layer in base_model.layers: layer.trainable = False
+for layer in base_model.layers: 
+    layer.trainable = FINE_TUNE
 
 model.compile(loss='categorical_crossentropy', 
               optimizer='adam', 
