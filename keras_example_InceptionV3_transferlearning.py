@@ -1,3 +1,5 @@
+# from: https://towardsdatascience.com/https-medium-com-manishchablani-useful-keras-features-4bac0724734c
+
 from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
 from keras.models import Model
@@ -5,12 +7,14 @@ from keras.layers import Dense, GlobalAveragePooling2D
 from keras import backend as K
 from keras.datasets import mnist
 
-
+# Load the data
+print('[INFO] Loading MNIST Data Set.')
 (trainX, trainY), (testX, testY) = mnist.load_data()
 trainX = trainX.reshape(trainX.shape + (1,))
 testX = testX.reshape(testX.shape + (1,))
 
 # create the base pre-trained model
+print('[INFO] Creating Base Model from Pre-trained Instance.')
 base_model = InceptionV3(weights='imagenet', include_top=False)
 
 # add a global spatial average pooling layer
@@ -28,12 +32,13 @@ model = Model(inputs=base_model.input, outputs=predictions)
 
 # first: train only the top layers (which were randomly initialized)
 # i.e. freeze all convolutional InceptionV3 layers
+print('Turning off all layers except top layer for transfer learning')
 for layer in base_model.layers:
     layer.trainable = False
 
 # compile the model (should be done *after* setting layers to non-trainable)
-model.compile(optimizer='adam', loss='categorical_crossentropy')
-
+print("Compiling Model: optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']")
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']))
 
 filepath = 'keras_checkpoints/'
 checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
@@ -42,6 +47,8 @@ tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_f
                      write_grads=False, write_images=False, embeddings_freq=0,
                      embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
 
+# earlyStopping = ...
+
 BATCH_SIZE = 32
 EPOCHS = 10
 VERBOSE = True
@@ -49,17 +56,18 @@ SHUFFLE = True
 
 if FIT_GEN:
     aug = image.ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
-        height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
-        horizontal_flip=True, vertical_flip=True, fill_mode="nearest")
+                                    height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
+                                    horizontal_flip=True, vertical_flip=True, fill_mode="nearest")
     
     # train the model on the new data for a few epochs
-    model.model.fit_generator(aug.flow(trainX, trainY, batch_size=BATCH_SIZE), epochs=EPOCHS, verbose=VERBOSE, 
-              callbacks=callbacks_list, validation_data=(testX, testY), steps_per_epoch=len(trainX) // BATCH_SIZE,
-              shuffle=SHUFFLE)
+    H = model.model.fit_generator(aug.flow(trainX, trainY, batch_size=BATCH_SIZE), epochs=EPOCHS, 
+                                    verbose=VERBOSE, callbacks=callbacks_list, 
+                                    validation_data=(testX, testY), 
+                                    steps_per_epoch=len(trainX) // BATCH_SIZE, shuffle=SHUFFLE)
 else:
-    model.fit(trainX, trainY, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=VERBOSE, 
-                callbacks=callbacks_list, validation_data=(testX, testY), 
-                steps_per_epoch=len(trainX) // BATCH_SIZE, shuffle=SHUFFLE)
+    H = model.fit(trainX, trainY, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=VERBOSE, 
+                    callbacks=callbacks_list, validation_data=(testX, testY), 
+                    steps_per_epoch=len(trainX) // BATCH_SIZE, shuffle=SHUFFLE)
 
 # # at this point, the top layers are well trained and we can start fine-tuning
 # # convolutional layers from inception V3. We will freeze the bottom N layers
@@ -86,3 +94,40 @@ else:
 # model.model.fit_generator(aug.flow(trainX, trainY, batch_size=BATCH_SIZE), epochs=EPOCHS, verbose=VERBOSE,
 #           callbacks=callbacks_list, validation_data=(testX, testY), steps_per_epoch=len(trainX) // BATCH_SIZE,
 #           shuffle=SHUFFLE)
+
+# save the model to disk
+print("[INFO] Storing {}...".format(base_model.name))
+model.save(args["model"])
+
+# save the label binarizer to disk
+print("[INFO] Storing Label Binarizer...")
+joblib.dump(lb, args["labelbin"] + 'joblib.save')
+
+plt.style.use("ggplot")
+plt.figure()
+N = len(H.history["loss"])
+plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
+plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
+plt.plot(np.arange(0, N), H.history["acc"], label="train_acc")
+plt.plot(np.arange(0, N), H.history["val_acc"], label="val_acc")
+plt.title("Training Loss and Accuracy")
+plt.xlabel("Epoch #")
+plt.ylabel("Loss/Accuracy")
+plt.legend(loc="upper left")
+plt.savefig(args["plot"])
+
+try:
+    preds = model.predict(testX, verbose=1)
+    
+    sub = pd.DataFrame(preds, columns=lb.classes_)
+    
+    # Insert the column id from the sample_submission at the start of the data frame
+    
+    # sub.insert(0, 'id', df_test['id'])
+    
+    print(sub.head(5))
+    
+    joblib.dump(sub, args["labelbin"].replace('lb', 'pred'))
+except Exception as e:
+    print('Prediction step failed because', e.message, e.args)
+
