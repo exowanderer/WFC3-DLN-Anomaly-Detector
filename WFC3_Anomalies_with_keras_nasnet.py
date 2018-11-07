@@ -257,17 +257,6 @@ test_labels_raw = testY.argmax(axis=1)#np.where(testY==1)[1]
 # print(trainX.shape, testX.shape, trainY.shape, testY.shape)
 
 # construct the image generator for data augmentation
-aug = image.ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
-    height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
-    horizontal_flip=True, vertical_flip=True, fill_mode="nearest")
-
-filepath = 'keras_checkpoints/'
-checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
-
-tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
-                     write_grads=False, write_images=False, embeddings_freq=0,
-                     embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
-
 # Create the base pre-trained model
 # Can't download weights in the kernel
 # input_tensor = Input(shape=IMAGE_DIMS)  # this assumes K.image_data_format() == 'channels_last'
@@ -290,17 +279,32 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam', 
               metrics=['accuracy'])
 
-# early_stopping = EarlyStopping(monitor='val_acc', patience=10, verbose=1,
-#                         baseline=args["min_val_acc"], mode='max')
-
-callbacks_list = [tensboard, checkpoints]#, early_stopping]
 print(model.summary())
 
+aug = image.ImageDataGenerator(rotation_range=360, width_shift_range=0.1,
+    height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
+    horizontal_flip=True, vertical_flip=True, fill_mode="nearest")
+
+filepath = 'keras_checkpoints/'
+checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+
+tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
+                     write_grads=False, write_images=False, embeddings_freq=0,
+                     embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
+
+
+early_stopping = EarlyStopping(monitor='val_acc', patience=10, verbose=1, baseline=args["min_val_acc"], mode='max')
+
+callbacks_list = [tensboard, checkpoints, early_stopping]
+
+
+VERBOSE = True
+SHUFFLE = True
 print("[INFO] training network...")
 start = time()
-H = model.fit_generator(aug.flow(trainX, trainY, batch_size=BATCH_SIZE), epochs=EPOCHS, verbose=1, 
-          callbacks=callbacks_list, validation_data=(testX, testY), steps_per_epoch=len(trainX) // BATCH_SIZE,
-          shuffle=True)
+H = model.fit_generator(aug.flow(trainX, trainY, batch_size=BATCH_SIZE), epochs=EPOCHS, verbose=VERBOSE, 
+                                  callbacks=callbacks_list, validation_data=(testX, testY), 
+                                  steps_per_epoch=len(trainX) // BATCH_SIZE, shuffle=SHUFFLE)
 
 print('\n\n *** Full TensorFlow Training Took {} minutes'.format((time()-start)//60))
 
