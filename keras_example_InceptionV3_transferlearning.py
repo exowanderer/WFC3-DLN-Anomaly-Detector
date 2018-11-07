@@ -38,7 +38,7 @@ for layer in base_model.layers:
 
 # compile the model (should be done *after* setting layers to non-trainable)
 print("Compiling Model: optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']")
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']))
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 filepath = 'keras_checkpoints/'
 checkpoints = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
