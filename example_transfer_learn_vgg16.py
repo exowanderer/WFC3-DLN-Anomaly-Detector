@@ -1,5 +1,6 @@
 ## from https://medium.com/@14prakash/transfer-learning-using-keras-d804b2e04ef8
 
+print("[INFO] Loading necessary libraries.")
 from keras import applications
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
@@ -9,15 +10,20 @@ from keras import backend as k
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard, EarlyStopping
 from time import time
 
+print("[INFO] Establishing the location and size of our images.")
 img_width, img_height = 256, 256
 train_data_dir = "../dataset_all/train"
 validation_data_dir = "../dataset_all/validation"
 nb_train_samples = 4125
 nb_validation_samples = 466 
+
+print("[INFO] Establishing the run parameters for the network.")
 batch_size = 16
 epochs = 50
 
+print("[INFO] Creating image augmentation generators.")
 # Initiate the train and test generators with data Augumentation 
+print('[INFO]', end=" ")
 train_datagen = ImageDataGenerator(
 rescale = 1./255,
 horizontal_flip = True,
@@ -27,6 +33,7 @@ width_shift_range = 0.3,
 height_shift_range=0.3,
 rotation_range=30)
 
+print('[INFO]', end=" ")
 test_datagen = ImageDataGenerator(
 rescale = 1./255,
 horizontal_flip = True,
@@ -36,6 +43,7 @@ width_shift_range = 0.3,
 height_shift_range=0.3,
 rotation_range=30)
 
+print("[INFO] Creating flow control for image access.")
 train_generator = train_datagen.flow_from_directory(
 train_data_dir,
 target_size = (img_height, img_width),
@@ -47,32 +55,44 @@ validation_data_dir,
 target_size = (img_height, img_width),
 class_mode = "categorical")
 
+print("[INFO] Creatin gour set of call back operations.")
 # Save the model according to the conditions  
 tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())))
 checkpoint = ModelCheckpoint("vgg16_1.h5", monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 early = EarlyStopping(monitor='val_acc', min_delta=0, patience=10, verbose=1, mode='auto')
 
-
+print("[INFO] Establishing the base model network to transfer from.")
 model = applications.VGG19(weights = "imagenet", include_top=False, input_shape = (img_width, img_height, 3))
 
+print("[INFO] Turning off all layers except top layer.")
 # Freeze the layers which you don't want to train. Here I am freezing the first 5 layers.
-for layer in model.layers[:5]:
+for layer in model.layers:#[:5]
     layer.trainable = False
 
 #Adding custom Layers 
+print("[INFO] Adding new layers for transfer flexibility.")
+
+hidden_new_layer1 = 1024
+hidden_new_layer2 = 1024
+dropout_rate = 0.5
+
 x = model.output
 x = Flatten()(x)
-x = Dense(1024, activation="relu")(x)
-x = Dropout(0.5)(x)
-x = Dense(1024, activation="relu")(x)
+x = Dense(hidden_new_layer1, activation="relu")(x)
+x = Dropout(dropout_rate)(x)
+x = Dense(hidden_new_layer2, activation="relu")(x)
 predictions = Dense(train_generator.num_classes, activation="softmax")(x)
 
 # creating the final model 
 model_final = Model(input = model.input, output = predictions)
 
+print("[INFO] Compiling the model for transfer training.")
 # compile the model 
-model_final.compile(loss = "categorical_crossentropy", optimizer = optimizers.SGD(lr=0.0001, momentum=0.9), metrics=["accuracy"])
+model_final.compile(loss = "categorical_crossentropy", optimizer='adam', metrics=["accuracy"])
 
+print(model_final.summary())
+
+print("[INFO] Fitting the transfer network with `fit_generator` flowing from directory.")
 # Train the model 
 model_final.fit_generator(
 train_generator,
@@ -82,6 +102,7 @@ validation_data = validation_generator,
 nb_val_samples = nb_validation_samples,
 callbacks = [checkpoint, early, tensboard])
 
+print("[INFO] Finished full run process")
 
 """
 Layer (type)                 Output Shape              Param #   
