@@ -12,8 +12,8 @@ from time import time
 
 print("[INFO] Establishing the location and size of our images.")
 img_width, img_height = 256, 256
-train_data_dir = "../dataset_all/train"
-validation_data_dir = "../dataset_all/validation"
+train_data_dir = "/home/ubuntu/Research/HST_Public_DLN/Data/train"
+validation_data_dir = "/home/ubuntu/Research/HST_Public_DLN/Data/validation"
 nb_train_samples = 4125
 nb_validation_samples = 466 
 
