@@ -33,11 +33,10 @@ def glob_subdirectories(base_dir, verbose=False):
     
     return list_of_files
 
-def load_data_from_file_list_of_arrays(filenames, img_size=256):
+def load_data_from_file(filenames, img_size=256):
     
     print('[INFO] Loading images and reshaping to {}x{}'.format(img_size, img_size))
     
-    #features = np.zeros((len(filenames), img_size, img_size, 3))
     features = []
     labels = []
     
@@ -47,7 +46,7 @@ def load_data_from_file_list_of_arrays(filenames, img_size=256):
         img = image.img_to_array(img, dtype='uint8')[:,:,:1]
         img = np.expand_dims(img, axis=0)
         img = PreTrainedModelSystem.preprocess_input(img)
-        features.append(img)
+        features.append(img[0])
         
         # extract the class label from the image path and update the
         # labels list
@@ -56,112 +55,7 @@ def load_data_from_file_list_of_arrays(filenames, img_size=256):
         
         del imagePath
     
-    # print('[INFO] Converting Features to 8-bit Unsigned Integers.')
-    # features = np.array(features_list, dtype="uint8")
-    # del features_list
-    
     return features, labels
-
-def load_data_from_file_3D_array(filenames, img_size=256):
-    
-    print('[INFO] Loading images and reshaping to {}x{}'.format(img_size, img_size))
-    
-    features = np.zeros((len(filenames), img_size, img_size, 3))
-    labels = []
-    
-    # loop over the input images
-    for kimage, imagePath in tqdm(enumerate(filenames), total=len(filenames)):
-        img = image.load_img(imagePath, target_size=(img_size, img_size))
-        img = image.img_to_array(img, dtype='uint8')[:,:,:1]
-        img = np.expand_dims(img, axis=0)
-        img = PreTrainedModelSystem.preprocess_input(img)
-        
-        features[kimage] = img
-        
-        del img
-        
-        # extract the class label from the image path and update the
-        # labels list
-        label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
-        labels.append(label)
-        
-        del imagePath
-    
-    # print('[INFO] Converting Features to 8-bit Unsigned Integers.')
-    # features = np.array(features_list, dtype="uint8")
-    # del features_list
-    
-    return features, labels
-
-def load_data_from_file_list_of_list(filenames, img_size=256):
-    
-    print('[INFO] Loading images and reshaping to {}x{}'.format(img_size, img_size))
-    
-    #features = np.zeros((len(filenames), img_size, img_size, 3))
-    features = []
-    labels = []
-    
-    # loop over the input images
-    for kimage, imagePath in tqdm(enumerate(filenames), total=len(filenames)):
-        img = image.load_img(imagePath, target_size=(img_size, img_size))
-        img = image.img_to_array(img, dtype='uint8')[:,:,:1]
-        img = np.expand_dims(img, axis=0)
-        img = PreTrainedModelSystem.preprocess_input(img)
-        
-        imglist = []
-        for row in img[0][:,:,0]:
-            imglist.append(list(row))
-        
-        features.append(imglist)
-        
-        del img, imglist
-        
-        # extract the class label from the image path and update the
-        # labels list
-        label = imagePath.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
-        labels.append(label)
-        
-        del imagePath
-    
-    # print('[INFO] Converting Features to 8-bit Unsigned Integers.')
-    # features = np.array(features_list, dtype="uint8")
-    # del features_list
-    
-    return features, labels
-
-def load_one(filename, img_size=256):
-    img = image.load_img(filename, target_size=(img_size, img_size))
-    img = image.img_to_array(img, dtype='uint8')[:,:,:1]
-    img = np.expand_dims(img, axis=0)
-    img = PreTrainedModelSystem.preprocess_input(img)
-    
-    # extract the class label from the image path and update the labels list
-    label = filename.split(os.path.sep)[-2] # /path/to/data/class_name/filename.jpg
-    
-    return img[0], label
-
-def load_data_from_file_mp(filenames, img_size=256, n_jobs=2, verbose=True):
-    
-    from functools import partial
-    from joblib import Parallel, delayed
-    
-    print("[INFO] Found {} files to open.".format(len(filenames)))
-    
-    partial_load_one = partial(load_one, img_size=img_size)
-    
-    with Parallel(n_jobs=n_jobs, verbose=verbose) as parallel:
-        outputs = parallel(delayed(partial_load_one)(fname) for fname in filenames)
-    
-    print(len(outputs), len(outputs[0]), len(outputs[1]))
-    
-    features = []
-    labels = []
-    for feature, label in outputs:
-        features.append(feature)
-        labels.append(label)
-    
-    return np.array(features), np.array(labels)
-
 
 print("[INFO] Establishing the location and size of our images.")
 img_width, img_height = 256, 256
@@ -193,15 +87,6 @@ random.shuffle(validation_filenames)
 
 trainX, trainY = load_data_from_file(train_filenames, img_size=img_width)#, n_jobs=args['ncores'], verbose=True)
 testX, testY = load_data_from_file(validation_filenames, img_size=img_width)#, n_jobs=args['ncores'], verbose=True)
-
-# trainX = np.array(trainX, dtype="float16") / 255.0
-# testX = np.array(testX, dtype="float16") / 255.0
-# trainY = np.array(trainY)
-# testY = np.array(testY)
-
-# print("[INFO] data  matrix: {:.2f}MB".format(trainX.nbytes / (1024 * 1000.0)))
-# print("[INFO] data  shape : {}".format(trainX.shape))
-# print("[INFO] label shape : {}".format(trainY.shape))
 
 # binarize the labels - one hot encoding
 lb = LabelBinarizer()
