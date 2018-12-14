@@ -72,7 +72,6 @@ N_CORES = args['ncores'] if inputs_found else ap['ncores'].get_default()
 from matplotlib import use
 use('Agg')
 
-import cv2
 import keras
 import matplotlib.pyplot as plt
 import numpy as np
@@ -81,7 +80,7 @@ import os
 import random
  
 # import the necessary packages
-from imutils import paths
+# from imutils import paths
 from glob import glob
 
 from keras import backend as K
@@ -98,6 +97,48 @@ from tqdm import tqdm
 
 from tensorflow import ConfigProto, Session
 
+
+# from:
+import os
+import tensorflow as tf
+from keras.callbacks import TensorBoard
+
+class TrainValTensorBoard(TensorBoard):
+    def __init__(self, log_dir='./logs', **kwargs):
+        # Make the original `TensorBoard` log to a subdirectory 'training'
+        training_log_dir = os.path.join(log_dir, 'training')
+        super(TrainValTensorBoard, self).__init__(training_log_dir, **kwargs)
+
+        # Log the validation metrics to a separate subdirectory
+        self.val_log_dir = os.path.join(log_dir, 'validation')
+
+    def set_model(self, model):
+        # Setup writer for validation metrics
+        self.val_writer = tf.summary.FileWriter(self.val_log_dir)
+        super(TrainValTensorBoard, self).set_model(model)
+
+    def on_epoch_end(self, epoch, logs=None):
+        # Pop the validation logs and handle them separately with
+        # `self.val_writer`. Also rename the keys so that they can
+        # be plotted on the same figure with the training metrics
+        logs = logs or {}
+        val_logs = {k.replace('val_', ''): v for k, v in logs.items() if k.startswith('val_')}
+        for name, value in val_logs.items():
+            summary = tf.Summary()
+            summary_value = summary.value.add()
+            summary_value.simple_value = value.item()
+            summary_value.tag = name
+            self.val_writer.add_summary(summary, epoch)
+        self.val_writer.flush()
+
+        # Pass the remaining logs to `TensorBoard.on_epoch_end`
+        logs = {k: v for k, v in logs.items() if not k.startswith('val_')}
+        super(TrainValTensorBoard, self).on_epoch_end(epoch, logs)
+
+    def on_train_end(self, logs=None):
+        super(TrainValTensorBoard, self).on_train_end(logs)
+        self.val_writer.close()
+
 # construct the image generator for data augmentation
 train_datagen = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
     height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
@@ -111,13 +152,14 @@ val_datagen = ImageDataGenerator(rotation_range=25, width_shift_range=0.1,
     height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
     horizontal_flip=True, fill_mode="nearest")
 
-tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
-                     write_grads=False, write_images=False, embeddings_freq=0,
-                     embeddings_layer_names=None, embeddings_metadata=None, embeddings_data=None)
+tensboard = TrainValTensorBoard(log_dir='./logs/log-{}'.format(int(time())), batch_size=BATCH_SIZE, write_graph=False)
+# tensboard = TensorBoard(log_dir='./logs/log-{}'.format(int(time())), histogram_freq=0, batch_size=BATCH_SIZE, write_graph=True,
+#                      write_grads=False, write_images=False, embeddings_freq=0,
+#                      embeddings_layer_names=None, embeddings_metadata=None)
 
-train_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/train/"
-test_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/test/"
-val_dir = r"/home/ubuntu/Research/HST_Public_DLN/Data/validation/"
+train_dir = os.environ['HOME'] + "/Research/CHADWICK/Data/train/"
+test_dir = os.environ['HOME'] + "/Research/CHADWICK/Data/test/"
+val_dir = os.environ['HOME'] + "/Research/CHADWICK/Data/validation/"
 
 train_generator = train_datagen.flow_from_directory(
     directory=train_dir,
